@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101521">
+  <meta name="description" content="Treine cálculo mental com quatro operações, 100 níveis progressivos e desafios contra o relógio.">
+  <title>Equa — Treino de cálculo mental</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0c111b;
+      --panel: #151d2b;
+      --panel-2: #1b2637;
+      --line: #29364a;
+      --text: #f3f6fc;
+      --muted: #9aa9bd;
+      --cyan: #63e3d2;
+      --cyan-dark: #173f43;
+      --purple: #a99aff;
+      --yellow: #ffd166;
+      --red: #ff7777;
+      --green: #7ce0a4;
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(99, 227, 210, .10), transparent 34rem),
+        radial-gradient(ellipse at 95% 18%, rgba(169, 154, 255, .09), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid rgba(99, 227, 210, .55); outline-offset: 3px; }
+    .shell { width: min(1120px, calc(100% - 36px)); margin: 0 auto; padding: 28px 0 54px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 48px; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+    .brand-mark {
+      width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center;
+      color: #071a1b; background: var(--cyan); font-weight: 950; font-size: 22px;
+      box-shadow: 0 8px 28px rgba(99, 227, 210, .18);
+    }
+    .brand-name { font-size: 18px; font-weight: 850; letter-spacing: -.04em; }
+    .brand-sub { display: block; color: var(--muted); font-size: 11px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; }
+    .header-pill, .eyebrow {
+      color: var(--cyan); border: 1px solid rgba(99, 227, 210, .24); background: rgba(99, 227, 210, .07);
+      border-radius: 99px; padding: 7px 12px; font-size: 11px; letter-spacing: .12em; font-weight: 800; text-transform: uppercase;
+    }
+    .hero { max-width: 740px; margin-bottom: 28px; }
+    .hero h1 { margin: 14px 0 12px; font-size: clamp(36px, 5.8vw, 62px); line-height: 1.02; letter-spacing: -.065em; }
+    .hero h1 span { color: var(--cyan); }
+    .hero p { color: var(--muted); font-size: 16px; max-width: 620px; margin: 0; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 30px 0; }
+    .stat { background: rgba(21, 29, 43, .78); border: 1px solid var(--line); border-radius: 15px; padding: 15px 18px; }
+    .stat-label { display: block; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+    .stat strong { display: block; margin-top: 3px; font-size: 25px; letter-spacing: -.04em; }
+    .layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; align-items: stretch; }
+    .panel { background: rgba(21, 29, 43, .9); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: 0 18px 60px rgba(0, 0, 0, .12); }
+    .section-kicker { color: var(--muted); font-size: 11px; letter-spacing: .14em; font-weight: 850; text-transform: uppercase; }
+    .panel h2 { margin: 5px 0 18px; font-size: 21px; letter-spacing: -.035em; }
+    .operations { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .operation {
+      min-height: 126px; padding: 16px; text-align: left; color: var(--text); background: var(--panel-2);
+      border: 1px solid transparent; border-radius: 15px; transition: border-color .18s, transform .18s, background .18s;
+    }
+    .operation:hover { transform: translateY(-2px); border-color: #52647d; }
+    .operation.selected { border-color: var(--cyan); background: rgba(99, 227, 210, .09); box-shadow: inset 0 0 0 1px rgba(99, 227, 210, .12); }
+    .operation-symbol { font-size: 24px; font-weight: 900; line-height: 1; color: var(--cyan); }
+    .operation-name { display: block; margin-top: 10px; font-weight: 800; }
+    .operation-progress { display: block; height: 4px; margin-top: 10px; background: #344156; border-radius: 9px; overflow: hidden; }
+    .operation-progress span { display: block; height: 100%; width: 1%; background: var(--cyan); border-radius: inherit; }
+    .operation-meta { display: block; color: var(--muted); font-size: 11px; margin-top: 5px; }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .mode {
+      padding: 12px 8px; border-radius: 12px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line);
+      text-align: center; transition: .18s;
+    }
+    .mode strong { display: block; color: var(--text); font-size: 13px; }
+    .mode small { display: block; margin-top: 3px; font-size: 11px; }
+    .mode.selected { border-color: var(--purple); background: rgba(169, 154, 255, .11); color: var(--purple); }
+    .mode.selected strong { color: var(--purple); }
+    .level-box { margin-top: 24px; padding: 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 15px; }
+    .level-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .level-top span:first-child { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+    .level-top span:last-child { font-size: 11px; color: var(--green); font-weight: 750; }
+    .level-selector { display: flex; align-items: center; justify-content: center; gap: 24px; margin: 14px 0 8px; }
+    .level-selector button { width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line); background: #263248; color: var(--text); font-size: 21px; }
+    .level-number { font-size: 32px; font-weight: 900; min-width: 74px; text-align: center; letter-spacing: -.06em; }
+    .level-hint { color: var(--muted); font-size: 12px; text-align: center; }
+    .primary {
+      width: 100%; margin-top: 18px; padding: 15px 18px; border: 0; border-radius: 13px; color: #071a1b;
+      background: var(--cyan); font-weight: 900; font-size: 15px; box-shadow: 0 10px 28px rgba(99, 227, 210, .12); transition: transform .18s, filter .18s;
+    }
+    .primary:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .footnote { color: var(--muted); font-size: 11px; text-align: center; margin: 12px 0 0; }
+    .rules { margin-top: 18px; display: flex; gap: 9px; align-items: flex-start; color: var(--muted); font-size: 12px; }
+    .rules b { color: var(--text); }
+    .game-panel { max-width: 760px; margin: 0 auto; }
+    .game-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 22px; }
+    .text-button { background: transparent; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); padding: 9px 12px; font-size: 12px; font-weight: 750; }
+    .game-heading { text-align: center; flex: 1; }
+    .game-heading small { display: block; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; font-weight: 850; }
+    .game-heading strong { font-size: 18px; }
+    .game-metrics { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 22px; }
+    .metric-chip { flex: 1; text-align: center; padding: 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; }
+    .metric-chip small { display: block; color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; }
+    .metric-chip strong { display: block; font-size: 18px; margin-top: 1px; }
+    .timer-wrap { margin-bottom: 28px; }
+    .timer-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 9px; }
+    #timerValue { color: var(--cyan); font-size: 16px; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .timer-track { height: 8px; border-radius: 99px; background: #2b3749; overflow: hidden; }
+    .timer-fill { width: 100%; height: 100%; border-radius: inherit; background: var(--cyan); transition: width .1s linear, background .2s; }
+    .timer-fill.urgent { background: var(--red); }
+    .question-card { text-align: center; padding: 34px 20px 30px; border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(145deg, rgba(99, 227, 210, .06), rgba(169, 154, 255, .05)); }
+    .question-label { color: var(--muted); font-size: 11px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+    .question { font-size: clamp(42px, 8vw, 66px); letter-spacing: -.06em; font-weight: 900; margin: 11px 0 25px; font-variant-numeric: tabular-nums; }
+    .answer-form { display: flex; gap: 9px; max-width: 440px; margin: 0 auto; }
+    .answer-input { min-width: 0; flex: 1; padding: 14px 16px; border-radius: 12px; border: 1px solid #40516a; background: #101826; color: var(--text); font-size: 19px; font-weight: 800; text-align: center; }
+    .answer-input::placeholder { color: #718199; font-weight: 500; }
+    .answer-submit { padding: 0 21px; border: 0; border-radius: 12px; background: var(--cyan); color: #071a1b; font-weight: 900; }
+    .feedback { min-height: 28px; margin: 15px 0 0; font-size: 13px; font-weight: 750; color: var(--muted); }
+    .feedback.good { color: var(--green); }
+    .feedback.bad { color: var(--red); }
+    .game-note { text-align: center; color: var(--muted); font-size: 11px; margin: 16px 0 0; }
+    .result-panel { max-width: 650px; margin: 0 auto; text-align: center; padding: 36px 28px; }
+    .result-icon { width: 70px; height: 70px; margin: 0 auto 18px; display: grid; place-items: center; background: rgba(124, 224, 164, .12); color: var(--green); border-radius: 22px; font-size: 34px; font-weight: 900; }
+    .result-panel h2 { font-size: 32px; letter-spacing: -.05em; margin: 8px 0; }
+    .result-panel p { color: var(--muted); margin: 0 auto; max-width: 430px; }
+    .result-score { display: flex; justify-content: center; gap: 12px; margin: 25px 0 10px; }
+    .result-score div { min-width: 105px; padding: 14px; border-radius: 13px; background: var(--panel-2); border: 1px solid var(--line); }
+    .result-score strong { display: block; font-size: 25px; }
+    .result-score small { color: var(--muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .secondary {
+      width: 100%; margin-top: 10px; padding: 13px 18px; border: 1px solid var(--line); border-radius: 13px;
+      color: var(--text); background: var(--panel-2); font-weight: 800;
+    }
+    .hidden { display: none !important; }
+    footer { border-top: 1px solid rgba(41, 54, 74, .7); margin-top: 42px; padding-top: 18px; display: flex; justify-content: space-between; gap: 12px; color: #78879c; font-size: 11px; }
+    @media (max-width: 800px) {
+      header { margin-bottom: 34px; }
+      .layout { grid-template-columns: 1fr; }
+      .hero h1 { max-width: 620px; }
+    }
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 24px, 560px); padding-top: 18px; }
+      header { margin-bottom: 28px; }
+      .header-pill { font-size: 9px; padding: 6px 8px; }
+      .brand-mark { width: 37px; height: 37px; }
+      .hero p { font-size: 14px; }
+      .stats { gap: 7px; margin: 22px 0; }
+      .stat { padding: 12px 10px; }
+      .stat strong { font-size: 21px; }
+      .stat-label { font-size: 9px; }
+      .panel { padding: 17px; }
+      .operations { gap: 8px; }
+      .operation { min-height: 116px; padding: 13px; }
+      .modes { gap: 5px; }
+      .mode { padding: 10px 4px; }
+      .game-metrics { gap: 6px; }
+      .metric-chip { padding: 8px 4px; }
+      .metric-chip small { font-size: 9px; }
+      .metric-chip strong { font-size: 16px; }
+      .question-card { padding: 27px 13px 24px; }
+      .answer-form { flex-direction: column; }
+      .answer-submit { min-height: 48px; }
+      .result-panel { padding: 28px 17px; }
+      footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="#" aria-label="Equa início">
+        <span class="brand-mark">E.</span>
+        <span><span class="brand-name">EQUA</span><span class="brand-sub">treino mental</span></span>
+      </a>
+      <span class="header-pill">Cálculo rápido · 100 níveis</span>
+    </header>
+
+    <section id="setupView">
+      <div class="hero">
+        <span class="eyebrow">Treine um pouco. Calcule mais rápido.</span>
+        <h1>Faça a conta.<br><span>Ganhe velocidade.</span></h1>
+        <p>Treine as quatro operações, avance no seu ritmo e descubra até onde sua agilidade mental consegue chegar. Cada segundo conta.</p>
+      </div>
+
+      <div class="stats" aria-label="Seu desempenho">
+        <div class="stat"><span class="stat-label">Contas certas</span><strong id="statCorrect">0</strong></div>
+        <div class="stat"><span class="stat-label">Melhor sequência</span><strong id="statStreak">0</strong></div>
+        <div class="stat"><span class="stat-label">Níveis liberados</span><strong id="statLevels">4 / 400</strong></div>
+      </div>
+
+      <div class="layout">
+        <section class="panel">
+          <span class="section-kicker">01 / escolha sua trilha</span>
+          <h2>Qual operação vamos treinar?</h2>
+          <div class="operations">
+            <button class="operation selected" type="button" data-operation="add" aria-pressed="true">
+              <span class="operation-symbol">+</span><span class="operation-name">Adição</span>
+              <span class="operation-progress"><span id="progress-add"></span></span><span class="operation-meta" id="meta-add">Nível 1 de 100 liberado</span>
+            </button>
+            <button class="operation" type="button" data-operation="subtract" aria-pressed="false">
+              <span class="operation-symbol">−</span><span class="operation-name">Subtração</span>
+              <span class="operation-progress"><span id="progress-subtract"></span></span><span class="operation-meta" id="meta-subtract">Nível 1 de 100 liberado</span>
+            </button>
+            <button class="operation" type="button" data-operation="multiply" aria-pressed="false">
+              <span class="operation-symbol">×</span><span class="operation-name">Multiplicação</span>
+              <span class="operation-progress"><span id="progress-multiply"></span></span><span class="operation-meta" id="meta-multiply">Nível 1 de 100 liberado</span>
+            </button>
+            <button class="operation" type="button" data-operation="divide" aria-pressed="false">
+              <span class="operation-symbol">÷</span><span class="operation-name">Divisão</span>
+              <span class="operation-progress"><span id="progress-divide"></span></span><span class="operation-meta" id="meta-divide">Nível 1 de 100 liberado</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <span class="section-kicker">02 / ajuste o desafio</span>
+          <h2>Escolha sua velocidade</h2>
+          <div class="modes" role="group" aria-label="Velocidade do jogo">
+            <button class="mode" type="button" data-mode="calm" aria-pressed="false"><strong>Tranquilo</strong><small>20 s por conta</small></button>
+            <button class="mode selected" type="button" data-mode="fast" aria-pressed="true"><strong>Velocidade</strong><small>12 s por conta</small></button>
+            <button class="mode" type="button" data-mode="intense" aria-pressed="false"><strong>Intenso</strong><small>7 s por conta</small></button>
+          </div>
+          <div class="level-box">
+            <div class="level-top"><span>Nível selecionado</span><span id="unlockedLabel">1 nível liberado</span></div>
+            <div class="level-selector">
+              <button type="button" id="levelDown" aria-label="Diminuir nível">−</button>
+              <div class="level-number" id="levelNumber">01</div>
+              <button type="button" id="levelUp" aria-label="Aumentar nível">+</button>
+            </div>
+            <div class="level-hint" id="levelHint">Contas simples para aquecer.</div>
+          </div>
+          <button class="primary" type="button" id="startButton">Começar desafio <span aria-hidden="true">→</span></button>
+          <p class="footnote">10 contas por rodada · Você precisa acertar 8 para liberar o próximo nível.</p>
+        </section>
+      </div>
+      <div class="rules"><span aria-hidden="true">ⓘ</span><span>Seu progresso fica salvo neste navegador. O jogo não exige cadastro e não envia seus resultados para um servidor.</span></div>
+    </section>
+
+    <section id="gameView" class="panel game-panel hidden" aria-live="polite">
+      <div class="game-head">
+        <button class="text-button" type="button" id="exitButton">← Sair</button>
+        <div class="game-heading"><small id="gameOperation">Adição · Nível 1</small><strong id="gameMode">Velocidade</strong></div>
+        <span class="header-pill" id="questionCounter">01 / 10</span>
+      </div>
+      <div class="game-metrics">
+        <div class="metric-chip"><small>Acertos</small><strong id="roundCorrect">0</strong></div>
+        <div class="metric-chip"><small>Sequência</small><strong id="roundStreak">0</strong></div>
+        <div class="metric-chip"><small>Pontos</small><strong id="roundPoints">0</strong></div>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-top"><span>Tempo restante</span><strong id="timerValue">12 s</strong></div>
+        <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+      </div>
+      <div class="question-card">
+        <div class="question-label">Resolva mentalmente</div>
+        <div class="question" id="questionText">8 + 5</div>
+        <form class="answer-form" id="answerForm">
+          <input class="answer-input" id="answerInput" type="text" inputmode="decimal" autocomplete="off" placeholder="Sua resposta" aria-label="Sua resposta" required>
+          <button class="answer-submit" id="answerButton" type="submit">Responder</button>
+        </form>
+        <p class="feedback" id="feedback" role="status">Digite o resultado e pressione Enter.</p>
+      </div>
+      <p class="game-note">Use vírgula ou ponto para responder contas com decimais.</p>
+    </section>
+
+    <section id="resultView" class="panel result-panel hidden" aria-live="polite">
+      <div class="result-icon" id="resultIcon">✓</div>
+      <span class="section-kicker" id="resultKicker">Rodada concluída</span>
+      <h2 id="resultTitle">Boa sequência!</h2>
+      <p id="resultText">Você concluiu o desafio.</p>
+      <div class="result-score">
+        <div><strong id="finalCorrect">0/10</strong><small>Acertos</small></div>
+        <div><strong id="finalPoints">0</strong><small>Pontos</small></div>
+        <div><strong id="finalStreak">0</strong><small>Maior sequência</small></div>
+      </div>
+      <button class="primary hidden" type="button" id="nextLevelButton">Avançar para o próximo nível →</button>
+      <button class="secondary" type="button" id="retryButton">Tentar este nível novamente</button>
+      <button class="secondary" type="button" id="homeButton">Voltar à seleção</button>
+    </section>
+
+    <footer>
+      <span>© 2026 EQUA · Um treino de cada vez.</span>
+      <span>Feito para praticar cálculo mental.</span>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const STORAGE_KEY = "equa-progress-v1";
+      const OPERATIONS = {
+        add: { name: "Adição", symbol: "+", hint: "Some os valores sem perder o ritmo." },
+        subtract: { name: "Subtração", symbol: "−", hint: "Encontre a diferença com precisão." },
+        multiply: { name: "Multiplicação", symbol: "×", hint: "Pratique os produtos e ganhe agilidade." },
+        divide: { name: "Divisão", symbol: "÷", hint: "Divisões exatas e resultados decimais." }
+      };
+      const MODES = {
+        calm: { name: "Tranquilo", seconds: 20 },
+        fast: { name: "Velocidade", seconds: 12 },
+        intense: { name: "Intenso", seconds: 7 }
+      };
+      const DIFFICULTY_HINTS = [
+        { max: 10, text: "Contas simples para aquecer." },
+        { max: 25, text: "Números maiores e mais agilidade." },
+        { max: 45, text: "Combinações intermediárias." },
+        { max: 65, text: "Contas avançadas e números grandes." },
+        { max: 100, text: "Desafio avançado, com decimais." }
+      ];
+
+      const DEFAULT_PROGRESS = {
+        unlocked: { add: 1, subtract: 1, multiply: 1, divide: 1 },
+        totalCorrect: 0,
+        totalAnswered: 0,
+        bestStreak: 0
+      };
+
+      function loadProgress() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          if (!saved || typeof saved !== "object") return structuredClone(DEFAULT_PROGRESS);
+          return {
+            unlocked: Object.assign({}, DEFAULT_PROGRESS.unlocked, saved.unlocked || {}),
+            totalCorrect: Math.max(0, Number(saved.totalCorrect) || 0),
+            totalAnswered: Math.max(0, Number(saved.totalAnswered) || 0),
+            bestStreak: Math.max(0, Number(saved.bestStreak) || 0)
+          };
+        } catch (error) {
+          return JSON.parse(JSON.stringify(DEFAULT_PROGRESS));
+        }
+      }
+
+      let progress = loadProgress();
+      let selectedOperation = "add";
+      let selectedMode = "fast";
+      let selectedLevel = 1;
+      let questions = [];
+      let questionIndex = 0;
+      let roundCorrect = 0;
+      let roundPoints = 0;
+      let currentStreak = 0;
+      let roundBestStreak = 0;
+      let timeLeft = 0;
+      let timerInterval = null;
+      let transitionTimeout = null;
+      let locked = false;
+
+      const $ = (id) => document.getElementById(id);
+      const setupView = $("setupView");
+      const gameView = $("gameView");
+      const resultView = $("resultView");
+
+      function saveProgress() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (error) { /* O jogo continua mesmo sem armazenamento. */ }
+      }
+
+      function updateDashboard() {
+        $("statCorrect").textContent = progress.totalCorrect.toLocaleString("pt-BR");
+        $("statStreak").textContent = progress.bestStreak.toLocaleString("pt-BR");
+        const levels = Object.values(progress.unlocked).reduce((sum, value) => sum + Math.min(100, Number(value) || 1), 0);
+        $("statLevels").textContent = levels + " / 400";
+        Object.keys(OPERATIONS).forEach((key) => {
+          const unlocked = Math.min(100, Math.max(1, Number(progress.unlocked[key]) || 1));
+          $("progress-" + key).style.width = unlocked + "%";
+          $("meta-" + key).textContent = "Até o nível " + unlocked + " liberado";
+        });
+        updateLevelControls();
+      }
+
+      function updateLevelControls() {
+        const unlocked = Math.min(100, Math.max(1, Number(progress.unlocked[selectedOperation]) || 1));
+        selectedLevel = Math.max(1, Math.min(unlocked, selectedLevel));
+        $("levelNumber").textContent = String(selectedLevel).padStart(2, "0");
+        $("unlockedLabel").textContent = unlocked + (unlocked === 1 ? " nível liberado" : " níveis liberados");
+        $("levelDown").disabled = selectedLevel <= 1;
+        $("levelUp").disabled = selectedLevel >= unlocked;
+        $("levelDown").style.opacity = selectedLevel <= 1 ? ".35" : "1";
+        $("levelUp").style.opacity = selectedLevel >= unlocked ? ".35" : "1";
+        const hint = DIFFICULTY_HINTS.find((item) => selectedLevel <= item.max);
+        $("levelHint").textContent = hint ? hint.text : OPERATIONS[selectedOperation].hint;
+      }
+
+      function showView(view) {
+        setupView.classList.toggle("hidden", view !== "setup");
+        gameView.classList.toggle("hidden", view !== "game");
+        resultView.classList.toggle("hidden", view !== "result");
+      }
+
+      document.querySelectorAll("[data-operation]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedOperation = button.dataset.operation;
+          selectedLevel = Math.min(selectedLevel, progress.unlocked[selectedOperation] || 1);
+          document.querySelectorAll("[data-operation]").forEach((item) => {
+            const active = item === button;
+            item.classList.toggle("selected", active);
+            item.setAttribute("aria-pressed", String(active));
+          });
+          updateLevelControls();
+        });
+      });
+
+      document.querySelectorAll("[data-mode]").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedMode = button.dataset.mode;
+          document.querySelectorAll("[data-mode]").forEach((item) => {
+            const active = item === button;
+            item.classList.toggle("selected", active);
+            item.setAttribute("aria-pressed", String(active));
+          });
+        });
+      });
+
+      $("levelDown").addEventListener("click", () => { selectedLevel = Math.max(1, selectedLevel - 1); updateLevelControls(); });
+      $("levelUp").addEventListener("click", () => {
+        selectedLevel = Math.min(progress.unlocked[selectedOperation] || 1, selectedLevel + 1);
+        updateLevelControls();
+      });
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function formatNumber(value) {
+        const rounded = Number(Number(value).toFixed(2));
+        return rounded.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+      }
+
+      function buildQuestion(operation, level) {
+        let a = 0;
+        let b = 0;
+        let answer = 0;
+        const decimals = level >= 66;
+
+        if (operation === "add") {
+          if (level <= 10) { a = randomInt(1, 20); b = randomInt(1, 20); }
+          else if (level <= 25) { a = randomInt(10, 99); b = randomInt(10, 99); }
+          else if (level <= 45) { a = randomInt(50, 999); b = randomInt(50, 999); }
+          else if (level <= 65) { a = randomInt(100, 9999); b = randomInt(100, 9999); }
+          else { a = randomInt(100, 9999) / 10; b = randomInt(100, 4999) / 10; }
+          answer = a + b;
+        } else if (operation === "subtract") {
+          if (level <= 10) { a = randomInt(2, 20); b = randomInt(1, a); }
+          else if (level <= 25) { a = randomInt(20, 99); b = randomInt(5, a); }
+          else if (level <= 45) { a = randomInt(100, 999); b = randomInt(10, a); }
+          else if (level <= 65) { a = randomInt(1000, 9999); b = randomInt(100, a); }
+          else { a = randomInt(1000, 9999) / 10; b = randomInt(100, Math.max(100, Math.floor(a * 10))) / 10; }
+          answer = a - b;
+        } else if (operation === "multiply") {
+          if (level <= 10) { a = randomInt(2, 10); b = randomInt(2, 10); }
+          else if (level <= 25) { a = randomInt(10, 99); b = randomInt(2, 9); }
+          else if (level <= 45) { a = randomInt(10, 99); b = randomInt(10, 99); }
+          else if (level <= 65) { a = randomInt(100, 999); b = randomInt(10, 99); }
+          else { a = randomInt(11, 99) / 10; b = randomInt(2, 39); }
+          answer = a * b;
+        } else {
+          let quotient = 0;
+          let divisor = 0;
+          if (level <= 10) { quotient = randomInt(1, 10); divisor = randomInt(2, 10); }
+          else if (level <= 25) { quotient = randomInt(2, 30); divisor = randomInt(2, 12); }
+          else if (level <= 45) { quotient = randomInt(10, 80); divisor = randomInt(2, 20); }
+          else if (level <= 65) { quotient = randomInt(10, 99); divisor = randomInt(10, 60); }
+          else { quotient = randomInt(5, 400) / 10; divisor = randomInt(2, 20); }
+          a = quotient * divisor;
+          b = divisor;
+          answer = quotient;
+        }
+
+        const symbol = OPERATIONS[operation].symbol;
+        return { text: formatNumber(a) + " " + symbol + " " + formatNumber(b), answer: Number(answer.toFixed(2)) };
+      }
+
+      function stopTimers() {
+        if (timerInterval) clearInterval(timerInterval);
+        if (transitionTimeout) clearTimeout(transitionTimeout);
+        timerInterval = null;
+        transitionTimeout = null;
+      }
+
+      function beginGame() {
+        stopTimers();
+        questions = Array.from({ length: 10 }, () => buildQuestion(selectedOperation, selectedLevel));
+        questionIndex = 0;
+        roundCorrect = 0;
+        roundPoints = 0;
+        currentStreak = 0;
+        roundBestStreak = 0;
+        locked = false;
+        $("gameOperation").textContent = OPERATIONS[selectedOperation].name + " · Nível " + selectedLevel;
+        $("gameMode").textContent = MODES[selectedMode].name;
+        showView("game");
+        showQuestion();
+      }
+
+      function showQuestion() {
+        locked = false;
+        const question = questions[questionIndex];
+        timeLeft = MODES[selectedMode].seconds;
+        $("questionCounter").textContent = String(questionIndex + 1).padStart(2, "0") + " / 10";
+        $("roundCorrect").textContent = roundCorrect;
+        $("roundStreak").textContent = currentStreak;
+        $("roundPoints").textContent = roundPoints;
+        $("questionText").textContent = question.text;
+        $("answerInput").value = "";
+        $("answerInput").disabled = false;
+        $("answerButton").disabled = false;
+        $("feedback").textContent = "Digite o resultado e pressione Enter.";
+        $("feedback").className = "feedback";
+        $("timerFill").style.width = "100%";
+        $("timerFill").classList.remove("urgent");
+        renderTimer();
+        $("answerInput").focus();
+        timerInterval = setInterval(() => {
+          if (locked) return;
+          timeLeft = Math.max(0, timeLeft - 0.1);
+          renderTimer();
+          if (timeLeft <= 0) evaluateAnswer(null, true);
+        }, 100);
+      }
+
+      function renderTimer() {
+        const total = MODES[selectedMode].seconds;
+        const ratio = Math.max(0, timeLeft / total);
+        $("timerValue").textContent = Math.ceil(timeLeft) + " s";
+        $("timerFill").style.width = (ratio * 100) + "%";
+        $("timerFill").classList.toggle("urgent", timeLeft <= 3);
+        $("timerValue").style.color = timeLeft <= 3 ? "var(--red)" : "var(--cyan)";
+      }
+
+      function parseAnswer(value) {
+        const normalized = String(value).trim().replace(/\s/g, "").replace(",", ".");
+        if (!normalized || !/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(normalized)) return NaN;
+        return Number(normalized);
+      }
+
+      function evaluateAnswer(rawAnswer, timedOut) {
+        if (locked) return;
+        locked = true;
+        if (timerInterval) clearInterval(timerInterval);
+        const expected = questions[questionIndex].answer;
+        const given = parseAnswer(rawAnswer);
+        const isCorrect = !timedOut && Number.isFinite(given) && Math.abs(given - expected) < 0.011;
+        progress.totalAnswered += 1;
+
+        if (isCorrect) {
+          roundCorrect += 1;
+          currentStreak += 1;
+          roundBestStreak = Math.max(roundBestStreak, currentStreak);
+          const earned = 10 + Math.ceil(timeLeft);
+          roundPoints += earned;
+          progress.totalCorrect += 1;
+          progress.bestStreak = Math.max(progress.bestStreak, currentStreak);
+          $("feedback").textContent = "Correto! +" + earned + " pontos";
+          $("feedback").className = "feedback good";
+        } else {
+          currentStreak = 0;
+          if (timedOut) $("feedback").textContent = "Tempo esgotado. Resposta: " + formatNumber(expected);
+          else $("feedback").textContent = "Não foi dessa vez. Resposta: " + formatNumber(expected);
+          $("feedback").className = "feedback bad";
+        }
+
+        saveProgress();
+        updateDashboard();
+        $("roundCorrect").textContent = roundCorrect;
+        $("roundStreak").textContent = currentStreak;
+        $("roundPoints").textContent = roundPoints;
+        $("answerInput").disabled = true;
+        $("answerButton").disabled = true;
+
+        transitionTimeout = setTimeout(() => {
+          questionIndex += 1;
+          if (questionIndex < questions.length) showQuestion();
+          else finishRound();
+        }, 750);
+      }
+
+      function finishRound() {
+        stopTimers();
+        const passed = roundCorrect >= 8;
+        const unlockedBefore = Math.min(100, Number(progress.unlocked[selectedOperation]) || 1);
+        if (passed && selectedLevel >= unlockedBefore && selectedLevel < 100) {
+          progress.unlocked[selectedOperation] = selectedLevel + 1;
+          saveProgress();
+        }
+        updateDashboard();
+
+        $("resultIcon").textContent = passed ? "✓" : "↻";
+        $("resultIcon").style.background = passed ? "rgba(124, 224, 164, .12)" : "rgba(255, 209, 102, .12)";
+        $("resultIcon").style.color = passed ? "var(--green)" : "var(--yellow)";
+        $("resultKicker").textContent = passed ? "Desafio concluído" : "Continue praticando";
+        $("resultTitle").textContent = passed ? (selectedLevel === 100 ? "Você chegou ao nível 100!" : "Nível superado!") : "Mais uma tentativa?";
+        if (passed && selectedLevel < 100) {
+          $("resultText").textContent = "Você acertou " + roundCorrect + " de 10 contas e liberou o nível " + (selectedLevel + 1) + ".";
+        } else if (passed) {
+          $("resultText").textContent = "Você completou o último nível desta trilha. Excelente resultado!";
+        } else {
+          $("resultText").textContent = "Você acertou " + roundCorrect + " de 10. Acerte pelo menos 8 para liberar o próximo nível.";
+        }
+        $("finalCorrect").textContent = roundCorrect + "/10";
+        $("finalPoints").textContent = roundPoints;
+        $("finalStreak").textContent = roundBestStreak;
+        $("nextLevelButton").classList.toggle("hidden", !passed || selectedLevel >= 100);
+        showView("result");
+      }
+
+      $("startButton").addEventListener("click", beginGame);
+      $("answerForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (locked) return;
+        const value = $("answerInput").value;
+        if (!value.trim()) {
+          $("feedback").textContent = "Digite uma resposta antes de confirmar.";
+          $("feedback").className = "feedback bad";
+          return;
+        }
+        evaluateAnswer(value, false);
+      });
+      $("exitButton").addEventListener("click", () => {
+        stopTimers();
+        showView("setup");
+        updateDashboard();
+      });
+      $("retryButton").addEventListener("click", beginGame);
+      $("homeButton").addEventListener("click", () => { stopTimers(); showView("setup"); updateDashboard(); });
+      $("nextLevelButton").addEventListener("click", () => {
+        selectedLevel = Math.min(100, selectedLevel + 1);
+        updateLevelControls();
+        beginGame();
+      });
+
+      updateDashboard();
+    })();
+  </script>
+</body>
+</html>
