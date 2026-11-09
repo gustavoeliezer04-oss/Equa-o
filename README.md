@@ -1,15 +1,15 @@
 # EQUA — Treino de cálculo mental
 
-Jogo de cálculo mental inspirado no formato de desafios cronometrados de plataformas de treino.
+Jogo de cálculo mental com quatro operações, desafios cronometrados e progressão contínua de dificuldade. A identidade visual usa tons rosados, bolhas translúcidas e estrelas.
 
 ## Como jogar
 
-- Escolha uma operação: adição, subtração, multiplicação ou divisão.
+- Escolha adição, subtração, multiplicação, divisão ou todas as operações misturadas.
 - Selecione um dos três ritmos: Tranquilo (20 s), Velocidade (12 s) ou Intenso (7 s) por conta.
-- Cada rodada tem 10 questões.
-- Acerte pelo menos 8 questões para liberar o próximo nível.
-- Cada operação tem 100 níveis progressivos.
-- O jogo registra acertos, melhor sequência e níveis desbloqueados no armazenamento local do navegador.
+- Resolva contas infinitamente: uma nova questão aparece após cada resposta.
+- A dificuldade cresce gradualmente conforme seus acertos acumulados.
+- O jogo registra acertos, melhor sequência e preferências no armazenamento local do navegador.
+- Alterne entre tema claro e escuro e ligue ou desligue os sons no cabeçalho.
 
 ## Executar localmente
 
@@ -25,7 +25,7 @@ Abra o arquivo `index.html` em um navegador moderno. Não é necessário instala
 
 ## Tecnologias
 
-HTML, CSS e JavaScript puro. O progresso é salvo no navegador via `localStorage`; não há login, backend ou envio de resultados a servidores.
+HTML, CSS e JavaScript puro. O progresso e as preferências são salvos via `localStorage`; não há login, backend ou envio de resultados a servidores.
 
 ## Observação
 
