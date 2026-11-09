@@ -495,12 +495,6 @@
         });
       });
 
-      $("levelDown").addEventListener("click", () => { selectedLevel = Math.max(1, selectedLevel - 1); updateLevelControls(); });
-      $("levelUp").addEventListener("click", () => {
-        selectedLevel = Math.min(progress.unlocked[selectedOperation] || 1, selectedLevel + 1);
-        updateLevelControls();
-      });
-
       function randomInt(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
