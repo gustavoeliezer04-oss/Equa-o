@@ -23,6 +23,46 @@
       --green: #7ce0a4;
       --radius: 20px;
     }
+
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg: #f2f5f9;
+      --panel: #ffffff;
+      --panel-2: #edf2f7;
+      --line: #d6deea;
+      --text: #172235;
+      --muted: #617086;
+      --cyan: #087f78;
+      --cyan-dark: #d8f3ef;
+      --purple: #7056c9;
+      --yellow: #9b6900;
+      --red: #c63d45;
+      --green: #16834b;
+    }
+    [data-theme="light"] body {
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(8, 127, 120, .09), transparent 34rem),
+        radial-gradient(ellipse at 95% 18%, rgba(112, 86, 201, .07), transparent 30rem),
+        var(--bg);
+    }
+    [data-theme="light"] .stat,
+    [data-theme="light"] .panel { background: rgba(255, 255, 255, .92); }
+    [data-theme="light"] .operation,
+    [data-theme="light"] .mode,
+    [data-theme="light"] .level-box,
+    [data-theme="light"] .metric-chip,
+    [data-theme="light"] .result-score div,
+    [data-theme="light"] .secondary { background: var(--panel-2); }
+    [data-theme="light"] .operation.selected { background: rgba(8, 127, 120, .09); }
+    [data-theme="light"] .operation-progress { background: #d5dee8; }
+    [data-theme="light"] .level-selector button { background: #e1e8f0; color: var(--text); }
+    [data-theme="light"] .answer-input { background: #fff; color: var(--text); border-color: #bdc9d8; }
+    [data-theme="light"] .timer-track { background: #dce4ed; }
+    [data-theme="light"] .question-card { background: linear-gradient(145deg, rgba(8, 127, 120, .06), rgba(112, 86, 201, .04)); }
+    [data-theme="light"] footer { border-color: var(--line); color: var(--muted); }
+    [data-theme="light"] .header-pill,
+    [data-theme="light"] .eyebrow { color: #087f78; }
+
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -196,6 +236,7 @@
         <span><span class="brand-name">EQUA</span><span class="brand-sub">treino mental</span></span>
       </a>
       <div class="header-actions">
+        <button class="sound-toggle" type="button" id="themeToggle" aria-pressed="false" title="Alternar tema">☀ Tema claro</button>
         <button class="sound-toggle" type="button" id="soundToggle" aria-pressed="true">♪ Sons ligados</button>
         <span class="header-pill">4 operações · 500 níveis</span>
       </div>
@@ -384,6 +425,27 @@
 
       function saveProgress() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (error) { /* O jogo continua mesmo sem armazenamento. */ }
+      }
+
+      function loadThemeSetting() {
+        try {
+          return localStorage.getItem("equa-theme") === "light" ? "light" : "dark";
+        } catch (error) {
+          return "dark";
+        }
+      }
+
+      let currentTheme = loadThemeSetting();
+
+      function applyTheme() {
+        document.documentElement.dataset.theme = currentTheme;
+        document.documentElement.style.colorScheme = currentTheme;
+        const button = $("themeToggle");
+        const isLight = currentTheme === "light";
+        button.textContent = isLight ? "☾ Tema escuro" : "☀ Tema claro";
+        button.setAttribute("aria-pressed", String(isLight));
+        button.setAttribute("aria-label", isLight ? "Ativar tema escuro" : "Ativar tema claro");
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", isLight ? "#f2f5f9" : "#101521");
       }
 
       function loadSoundSetting() {
@@ -730,6 +792,12 @@
         showView("result");
       }
 
+      $("themeToggle").addEventListener("click", () => {
+        currentTheme = currentTheme === "dark" ? "light" : "dark";
+        try { localStorage.setItem("equa-theme", currentTheme); } catch (error) { /* Preferência apenas local. */ }
+        applyTheme();
+      });
+
       $("soundToggle").addEventListener("click", () => {
         soundEnabled = !soundEnabled;
         try { localStorage.setItem("equa-sound-enabled", String(soundEnabled)); } catch (error) { /* Preferência apenas local. */ }
@@ -765,6 +833,7 @@
         beginGame();
       });
 
+      applyTheme();
       updateDashboard();
     })();
   </script>
