@@ -603,6 +603,7 @@
       <div class="header-actions">
         <button class="sound-toggle" type="button" id="themeToggle" aria-pressed="false" title="Alternar tema">☀ Tema claro</button>
         <button class="sound-toggle" type="button" id="soundToggle" aria-pressed="true">♪ Sons ligados</button>
+        <button class="sound-toggle" type="button" id="musicToggle" aria-pressed="true">♫ Música ligada</button>
         <span class="header-pill">4 operações · sem fim</span>
       </div>
     </header>
@@ -738,7 +739,14 @@
       let transitionTimeout = null;
       let locked = false;
       let soundEnabled = loadSoundSetting();
+      let musicEnabled = loadMusicSetting();
       let audioContext = null;
+      let musicGain = null;
+      let musicScheduler = null;
+      let musicNextStepTime = 0;
+      let musicStep = 0;
+      const MUSIC_BPM = 92;
+      const MUSIC_STEP = 60 / MUSIC_BPM / 4;
 
       const $ = (id) => document.getElementById(id);
       const setupView = $("setupView");
@@ -785,13 +793,148 @@
         button.setAttribute("aria-pressed", String(soundEnabled));
       }
 
+      function loadMusicSetting() {
+        try {
+          const saved = localStorage.getItem("equa-music-enabled");
+          return saved === null ? true : saved === "true";
+        } catch (error) {
+          return true;
+        }
+      }
+
+      function updateMusicButton() {
+        const button = $("musicToggle");
+        button.textContent = musicEnabled ? "♫ Música ligada" : "♫ Música desligada";
+        button.setAttribute("aria-pressed", String(musicEnabled));
+      }
+
       function ensureAudioContext() {
-        if (!soundEnabled) return null;
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return null;
         if (!audioContext) audioContext = new AudioContextClass();
         if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
         return audioContext;
+      }
+
+
+      // Trilha original: groove instrumental leve de funk/R&B, sem reproduzir melodia de músicas existentes.
+      function musicOutput() {
+        const context = ensureAudioContext();
+        if (!context) return null;
+        if (!musicGain) {
+          musicGain = context.createGain();
+          musicGain.gain.value = 0.0001;
+          musicGain.connect(context.destination);
+        }
+        return context;
+      }
+
+      function scheduleMusicTone(frequency, start, duration, type, volume, filterFrequency) {
+        const context = audioContext;
+        const oscillator = context.createOscillator();
+        const filter = context.createBiquadFilter();
+        const envelope = context.createGain();
+        oscillator.type = type || "sine";
+        oscillator.frequency.setValueAtTime(frequency, start);
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(filterFrequency || 1800, start);
+        envelope.gain.setValueAtTime(0.0001, start);
+        envelope.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume), start + 0.018);
+        envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        oscillator.connect(filter);
+        filter.connect(envelope);
+        envelope.connect(musicGain);
+        oscillator.start(start);
+        oscillator.stop(start + duration + 0.035);
+      }
+
+      function scheduleMusicKick(start) {
+        const context = audioContext;
+        const oscillator = context.createOscillator();
+        const envelope = context.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(105, start);
+        oscillator.frequency.exponentialRampToValueAtTime(43, start + 0.14);
+        envelope.gain.setValueAtTime(0.0001, start);
+        envelope.gain.exponentialRampToValueAtTime(0.20, start + 0.008);
+        envelope.gain.exponentialRampToValueAtTime(0.0001, start + 0.17);
+        oscillator.connect(envelope);
+        envelope.connect(musicGain);
+        oscillator.start(start);
+        oscillator.stop(start + 0.19);
+      }
+
+      function scheduleMusicNoise(start, duration, volume, highpass) {
+        const context = audioContext;
+        const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+        const source = context.createBufferSource();
+        const filter = context.createBiquadFilter();
+        const envelope = context.createGain();
+        source.buffer = buffer;
+        filter.type = "highpass";
+        filter.frequency.value = highpass;
+        envelope.gain.setValueAtTime(volume, start);
+        envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        source.connect(filter);
+        filter.connect(envelope);
+        envelope.connect(musicGain);
+        source.start(start);
+        source.stop(start + duration);
+      }
+
+      function scheduleMusicChord(start, notes) {
+        notes.forEach((frequency) => {
+          scheduleMusicTone(frequency, start, 0.92, "triangle", 0.018, 1250);
+        });
+      }
+
+      function scheduleMusicStep() {
+        if (!musicEnabled || !audioContext || !musicGain) return;
+        const step = musicStep % 16;
+        const start = musicNextStepTime;
+        const bassPattern = [55, 0, 73.42, 0, 82.41, 0, 73.42, 0, 65.41, 0, 73.42, 0, 49, 0, 65.41, 0];
+        if (bassPattern[step]) {
+          scheduleMusicTone(bassPattern[step], start, 0.19, "triangle", 0.085, 520);
+        }
+        if (step === 0 || step === 8) scheduleMusicKick(start);
+        if (step === 4 || step === 12) scheduleMusicNoise(start, 0.13, 0.035, 1400);
+        if (step === 2 || step === 6 || step === 10 || step === 14) {
+          scheduleMusicNoise(start, 0.035, 0.012, 6500);
+        }
+        if (step === 0) scheduleMusicChord(start, [220, 261.63, 329.63, 392]);
+        if (step === 8) scheduleMusicChord(start, [196, 246.94, 293.66, 349.23]);
+        musicNextStepTime += MUSIC_STEP;
+        musicStep = (musicStep + 1) % 16;
+      }
+
+      function startAmbientMusic() {
+        if (!musicEnabled) return;
+        const context = musicOutput();
+        if (!context) return;
+        if (context.state === "suspended") context.resume().catch(() => {});
+        if (musicScheduler) return;
+        const now = context.currentTime;
+        musicNextStepTime = now + 0.06;
+        musicGain.gain.cancelScheduledValues(now);
+        musicGain.gain.setTargetAtTime(0.62, now, 0.22);
+        musicStep = 0;
+        musicScheduler = setInterval(() => {
+          if (!musicEnabled || !musicGain || !audioContext) return;
+          const currentTime = audioContext.currentTime;
+          while (musicNextStepTime < currentTime + 0.12) scheduleMusicStep();
+        }, 25);
+      }
+
+      function stopAmbientMusic() {
+        if (musicScheduler) clearInterval(musicScheduler);
+        musicScheduler = null;
+        if (musicGain && audioContext) {
+          const now = audioContext.currentTime;
+          musicGain.gain.cancelScheduledValues(now);
+          musicGain.gain.setTargetAtTime(0.0001, now, 0.07);
+        }
       }
 
       function playFeedbackSound(correct) {
@@ -931,6 +1074,7 @@
 
       function showQuestion() {
         locked = false;
+        startAmbientMusic();
         currentQuestion = createQuestion();
         timeLeft = MODES[selectedMode].seconds;
         questionIndex += 1;
@@ -987,6 +1131,7 @@
       function evaluateAnswer(rawAnswer, timedOut) {
         if (locked) return;
         locked = true;
+        stopAmbientMusic();
         if (timerInterval) clearInterval(timerInterval);
         const expected = currentQuestion.answer;
         const given = parseAnswer(rawAnswer);
@@ -1039,6 +1184,14 @@
         }
       });
 
+      $("musicToggle").addEventListener("click", () => {
+        musicEnabled = !musicEnabled;
+        try { localStorage.setItem("equa-music-enabled", String(musicEnabled)); } catch (error) { /* Preferência apenas local. */ }
+        updateMusicButton();
+        if (musicEnabled && !locked && gameView && !gameView.classList.contains("hidden")) startAmbientMusic();
+        else stopAmbientMusic();
+      });
+
       $("startButton").addEventListener("click", beginGame);
       $("answerForm").addEventListener("submit", (event) => {
         event.preventDefault();
@@ -1053,12 +1206,14 @@
       });
       $("exitButton").addEventListener("click", () => {
         stopTimers();
+        stopAmbientMusic();
         showView("setup");
         updateDashboard();
       });
 
       applyTheme();
       updateDashboard();
+      updateMusicButton();
     })();
   </script>
 </body>
