@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#101521">
-  <meta name="description" content="Treine cálculo mental com quatro operações, 100 níveis progressivos e desafios contra o relógio.">
+  <meta name="description" content="Treine cálculo mental com quatro operações separadas ou misturadas, 500 níveis de trilha e desafios contra o relógio.">
   <title>Equa — Treino de cálculo mental</title>
   <style>
     :root {
@@ -48,6 +48,9 @@
     }
     .brand-name { font-size: 18px; font-weight: 850; letter-spacing: -.04em; }
     .brand-sub { display: block; color: var(--muted); font-size: 11px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .sound-toggle { border: 1px solid var(--line); border-radius: 99px; background: var(--panel); color: var(--text); padding: 7px 11px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+    .sound-toggle[aria-pressed="false"] { color: var(--muted); }
     .header-pill, .eyebrow {
       color: var(--cyan); border: 1px solid rgba(99, 227, 210, .24); background: rgba(99, 227, 210, .07);
       border-radius: 99px; padding: 7px 12px; font-size: 11px; letter-spacing: .12em; font-weight: 800; text-transform: uppercase;
@@ -76,6 +79,14 @@
     .operation-progress { display: block; height: 4px; margin-top: 10px; background: #344156; border-radius: 9px; overflow: hidden; }
     .operation-progress span { display: block; height: 100%; width: 1%; background: var(--cyan); border-radius: inherit; }
     .operation-meta { display: block; color: var(--muted); font-size: 11px; margin-top: 5px; }
+    .operation[data-operation="all"] {
+      grid-column: 1 / -1; min-height: 94px; display: grid; grid-template-columns: 42px minmax(0, 1fr);
+      grid-template-rows: auto auto auto; align-content: center; column-gap: 14px; row-gap: 0;
+    }
+    .operation[data-operation="all"] .operation-symbol { grid-column: 1; grid-row: 1 / 4; font-size: 30px; text-align: center; }
+    .operation[data-operation="all"] .operation-name { grid-column: 2; grid-row: 1; margin: 0; }
+    .operation[data-operation="all"] .operation-progress { grid-column: 2; grid-row: 2; margin-top: 8px; }
+    .operation[data-operation="all"] .operation-meta { grid-column: 2; grid-row: 3; margin-top: 5px; }
     .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .mode {
       padding: 12px 8px; border-radius: 12px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line);
@@ -150,7 +161,7 @@
     @media (max-width: 520px) {
       .shell { width: min(100% - 24px, 560px); padding-top: 18px; }
       header { margin-bottom: 28px; }
-      .header-pill { font-size: 9px; padding: 6px 8px; }
+      .header-pill { font-size: 9px; padding: 6px 8px; }\n      .header-actions { gap: 6px; }\n      .sound-toggle { font-size: 10px; padding: 6px 8px; }
       .brand-mark { width: 37px; height: 37px; }
       .hero p { font-size: 14px; }
       .stats { gap: 7px; margin: 22px 0; }
@@ -184,7 +195,10 @@
         <span class="brand-mark">E.</span>
         <span><span class="brand-name">EQUA</span><span class="brand-sub">treino mental</span></span>
       </a>
-      <span class="header-pill">Cálculo rápido · 100 níveis</span>
+      <div class="header-actions">
+        <button class="sound-toggle" type="button" id="soundToggle" aria-pressed="true">♪ Sons ligados</button>
+        <span class="header-pill">4 operações · 500 níveis</span>
+      </div>
     </header>
 
     <section id="setupView">
@@ -197,7 +211,7 @@
       <div class="stats" aria-label="Seu desempenho">
         <div class="stat"><span class="stat-label">Contas certas</span><strong id="statCorrect">0</strong></div>
         <div class="stat"><span class="stat-label">Melhor sequência</span><strong id="statStreak">0</strong></div>
-        <div class="stat"><span class="stat-label">Níveis liberados</span><strong id="statLevels">4 / 400</strong></div>
+        <div class="stat"><span class="stat-label">Níveis liberados</span><strong id="statLevels">5 / 500</strong></div>
       </div>
 
       <div class="layout">
@@ -220,6 +234,10 @@
             <button class="operation" type="button" data-operation="divide" aria-pressed="false">
               <span class="operation-symbol">÷</span><span class="operation-name">Divisão</span>
               <span class="operation-progress"><span id="progress-divide"></span></span><span class="operation-meta" id="meta-divide">Nível 1 de 100 liberado</span>
+            </button>
+            <button class="operation" type="button" data-operation="all" aria-pressed="false">
+              <span class="operation-symbol">∑</span><span class="operation-name">Todas as operações</span>
+              <span class="operation-progress"><span id="progress-all"></span></span><span class="operation-meta" id="meta-all">Misture as quatro operações · nível 1</span>
             </button>
           </div>
         </section>
@@ -321,7 +339,7 @@
       ];
 
       const DEFAULT_PROGRESS = {
-        unlocked: { add: 1, subtract: 1, multiply: 1, divide: 1 },
+        unlocked: { add: 1, subtract: 1, multiply: 1, divide: 1, all: 1 },
         totalCorrect: 0,
         totalAnswered: 0,
         bestStreak: 0
@@ -356,6 +374,8 @@
       let timerInterval = null;
       let transitionTimeout = null;
       let locked = false;
+      let soundEnabled = loadSoundSetting();
+      let audioContext = null;
 
       const $ = (id) => document.getElementById(id);
       const setupView = $("setupView");
@@ -366,17 +386,75 @@
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (error) { /* O jogo continua mesmo sem armazenamento. */ }
       }
 
+      function loadSoundSetting() {
+        try {
+          const saved = localStorage.getItem("equa-sound-enabled");
+          return saved === null ? true : saved === "true";
+        } catch (error) {
+          return true;
+        }
+      }
+
+      function updateSoundButton() {
+        const button = $("soundToggle");
+        button.textContent = soundEnabled ? "♪ Sons ligados" : "♪ Sons desligados";
+        button.setAttribute("aria-pressed", String(soundEnabled));
+      }
+
+      function ensureAudioContext() {
+        if (!soundEnabled) return null;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return null;
+        if (!audioContext) audioContext = new AudioContextClass();
+        if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
+        return audioContext;
+      }
+
+      function playFeedbackSound(correct) {
+        if (!soundEnabled) return;
+        try {
+          const context = ensureAudioContext();
+          if (!context) return;
+          const now = context.currentTime;
+          const notes = correct
+            ? [{ frequency: 660, offset: 0, duration: 0.11 }, { frequency: 880, offset: 0.105, duration: 0.16 }]
+            : [{ frequency: 300, offset: 0, duration: 0.15 }, { frequency: 205, offset: 0.13, duration: 0.19 }];
+
+          notes.forEach((note) => {
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            const start = now + note.offset;
+            const end = start + note.duration;
+            oscillator.type = correct ? "sine" : "triangle";
+            oscillator.frequency.setValueAtTime(note.frequency, start);
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.exponentialRampToValueAtTime(correct ? 0.075 : 0.06, start + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.0001, end);
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start(start);
+            oscillator.stop(end + 0.015);
+          });
+        } catch (error) {
+          // O jogo continua normalmente mesmo se o navegador bloquear áudio.
+        }
+      }
+
       function updateDashboard() {
         $("statCorrect").textContent = progress.totalCorrect.toLocaleString("pt-BR");
         $("statStreak").textContent = progress.bestStreak.toLocaleString("pt-BR");
         const levels = Object.values(progress.unlocked).reduce((sum, value) => sum + Math.min(100, Number(value) || 1), 0);
-        $("statLevels").textContent = levels + " / 400";
+        $("statLevels").textContent = levels + " / 500";
         Object.keys(OPERATIONS).forEach((key) => {
           const unlocked = Math.min(100, Math.max(1, Number(progress.unlocked[key]) || 1));
           $("progress-" + key).style.width = unlocked + "%";
           $("meta-" + key).textContent = "Até o nível " + unlocked + " liberado";
         });
+        const allUnlocked = Math.min(100, Math.max(1, Number(progress.unlocked.all) || 1));
+        $("progress-all").style.width = allUnlocked + "%";
+        $("meta-all").textContent = "Até o nível " + allUnlocked + " liberado · 4 operações misturadas";
         updateLevelControls();
+        updateSoundButton();
       }
 
       function updateLevelControls() {
@@ -389,7 +467,9 @@
         $("levelDown").style.opacity = selectedLevel <= 1 ? ".35" : "1";
         $("levelUp").style.opacity = selectedLevel >= unlocked ? ".35" : "1";
         const hint = DIFFICULTY_HINTS.find((item) => selectedLevel <= item.max);
-        $("levelHint").textContent = hint ? hint.text : OPERATIONS[selectedOperation].hint;
+        $("levelHint").textContent = selectedOperation === "all"
+          ? "As quatro operações aparecem misturadas nesta rodada."
+          : (hint ? hint.text : OPERATIONS[selectedOperation].hint);
       }
 
       function showView(view) {
@@ -486,8 +566,25 @@
         }
 
         const symbol = OPERATIONS[operation].symbol;
-        return { text: formatNumber(a) + " " + symbol + " " + formatNumber(b), answer: Number(answer.toFixed(2)) };
+        return { operation, text: formatNumber(a) + " " + symbol + " " + formatNumber(b), answer: Number(answer.toFixed(2)) };
       }
+
+      function createQuestionSet() {
+        let operationList;
+        if (selectedOperation === "all") {
+          operationList = ["add", "add", "subtract", "subtract", "multiply", "multiply", "divide", "divide"];
+          operationList.push( ["add", "subtract", "multiply", "divide"][randomInt(0, 3)] );
+          operationList.push( ["add", "subtract", "multiply", "divide"][randomInt(0, 3)] );
+          for (let i = operationList.length - 1; i > 0; i -= 1) {
+            const j = randomInt(0, i);
+            [operationList[i], operationList[j]] = [operationList[j], operationList[i]];
+          }
+        } else {
+          operationList = Array(10).fill(selectedOperation);
+        }
+        return operationList.map((operation) => buildQuestion(operation, selectedLevel));
+      }
+
       function stopTimers() {
         if (timerInterval) clearInterval(timerInterval);
         if (transitionTimeout) clearTimeout(transitionTimeout);
@@ -497,14 +594,15 @@
 
       function beginGame() {
         stopTimers();
-        questions = Array.from({ length: 10 }, () => buildQuestion(selectedOperation, selectedLevel));
+        ensureAudioContext();
+        questions = createQuestionSet();
         questionIndex = 0;
         roundCorrect = 0;
         roundPoints = 0;
         currentStreak = 0;
         roundBestStreak = 0;
         locked = false;
-        $("gameOperation").textContent = OPERATIONS[selectedOperation].name + " · Nível " + selectedLevel;
+        $("gameOperation").textContent = (selectedOperation === "all" ? "Todas as operações" : OPERATIONS[selectedOperation].name) + " · Nível " + selectedLevel;
         $("gameMode").textContent = MODES[selectedMode].name;
         showView("game");
         showQuestion();
@@ -519,9 +617,19 @@
         $("roundStreak").textContent = currentStreak;
         $("roundPoints").textContent = roundPoints;
         $("questionText").textContent = question.text;
+        $("questionText").setAttribute("aria-label", OPERATIONS[question.operation].name + ": " + question.text);
         $("answerInput").value = "";
         $("answerInput").disabled = false;
         $("answerButton").disabled = false;
+        $("questionText").insertAdjacentElement("beforebegin", $("questionOperationLabel") || document.createElement("span"));
+        let operationLabel = $("questionOperationLabel");
+        if (!operationLabel) {
+          operationLabel = document.createElement("div");
+          operationLabel.id = "questionOperationLabel";
+          operationLabel.className = "question-label";
+          $("questionText").parentNode.insertBefore(operationLabel, $("questionText"));
+        }
+        operationLabel.textContent = OPERATIONS[question.operation].name;
         $("feedback").textContent = "Digite o resultado e pressione Enter.";
         $("feedback").className = "feedback";
         $("timerFill").style.width = "100%";
@@ -559,6 +667,7 @@
         const given = parseAnswer(rawAnswer);
         const isCorrect = !timedOut && Number.isFinite(given) && Math.abs(given - expected) < 0.011;
         progress.totalAnswered += 1;
+        playFeedbackSound(isCorrect);
 
         if (isCorrect) {
           roundCorrect += 1;
@@ -620,6 +729,16 @@
         $("nextLevelButton").classList.toggle("hidden", !passed || selectedLevel >= 100);
         showView("result");
       }
+
+      $("soundToggle").addEventListener("click", () => {
+        soundEnabled = !soundEnabled;
+        try { localStorage.setItem("equa-sound-enabled", String(soundEnabled)); } catch (error) { /* Preferência apenas local. */ }
+        updateSoundButton();
+        if (soundEnabled) {
+          ensureAudioContext();
+          playFeedbackSound(true);
+        }
+      });
 
       $("startButton").addEventListener("click", beginGame);
       $("answerForm").addEventListener("submit", (event) => {
