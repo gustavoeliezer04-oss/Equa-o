@@ -950,19 +950,23 @@
           operationLabel.className = "question-label";
           $("questionText").parentNode.insertBefore(operationLabel, $("questionText"));
         }
-        operationLabel.textContent = OPERATIONS[question.operation].name;
+        operationLabel.textContent = OPERATIONS[currentQuestion.operation].name;
         $("feedback").textContent = "Digite o resultado e pressione Enter.";
         $("feedback").className = "feedback";
         $("timerFill").style.width = "100%";
         $("timerFill").classList.remove("urgent");
         renderTimer();
         $("answerInput").focus();
+        let lastTick = Date.now();
         timerInterval = setInterval(() => {
           if (locked) return;
-          timeLeft = Math.max(0, timeLeft - 0.1);
+          const now = Date.now();
+          const elapsed = Math.max(0, (now - lastTick) / 1000);
+          lastTick = now;
+          timeLeft = Math.max(0, timeLeft - elapsed);
           renderTimer();
           if (timeLeft <= 0) evaluateAnswer(null, true);
-        }, 100);
+        }, 50);
       }
 
       function renderTimer() {
