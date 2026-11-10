@@ -1066,7 +1066,7 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
           <button type="button" data-key="3">3</button>
           <button type="button" data-key=",">,</button>
           <button type="button" data-key="0" class="pad-zero">0</button>
-          <button type="submit" form="answerForm" class="pad-enter">OK ↵</button>
+          <button type="button" id="answerPadButton" class="pad-enter">OK ↵</button>
         </div>
         <p class="feedback" id="feedback" role="status">Digite o resultado e pressione Enter.</p>
       </div>
@@ -1658,8 +1658,8 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       }
       numberPad.addEventListener("click", (event) => {
         const button = event.target.closest("button");
-        // O botão OK envia o formulário; não é uma tecla numérica.
-        if (!button || button.type === "submit" || locked) return;
+        // Só botões explicitamente marcados como teclas podem alterar a resposta.
+        if (!button || locked || !button.hasAttribute("data-key") && !button.hasAttribute("data-action")) return;
         const input = $("answerInput");
         const action = button.dataset.action;
         if (action === "clear") {
@@ -1668,11 +1668,16 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
           input.value = input.value.slice(0, -1);
         } else {
           const key = button.dataset.key;
-          if (typeof key !== "string") return;
+          if (typeof key !== "string" || key.length === 0) return;
           if (key === "," && /[,.]/.test(input.value)) return;
           input.value += key;
         }
         input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+
+      // O OK confirma diretamente, sem passar pelo manipulador das teclas.
+      $("answerPadButton").addEventListener("click", () => {
+        if (!locked) $("answerForm").requestSubmit();
       });
 
       $("answerForm").addEventListener("submit", (event) => {
