@@ -600,6 +600,155 @@
       .bubble { animation: none; }
     }
 
+
+    /* Seletor de paletas */
+    .theme-picker {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 9px 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255,255,255,.52);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      white-space: nowrap;
+      backdrop-filter: blur(12px);
+    }
+    .theme-picker select {
+      max-width: 112px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+    .theme-picker option { background: #fff; color: #222; }
+    [data-theme="dark"] .theme-picker { background: rgba(61,35,66,.78); }
+    [data-theme="ocean"], [data-theme="forest"], [data-theme="sunset"] {
+      color-scheme: light;
+    }
+    [data-theme="ocean"] {
+      --bg: #eff8ff; --panel: rgba(255,255,255,.84); --panel-2: rgba(224,241,253,.88);
+      --line: rgba(86,157,207,.32); --text: #183b57; --muted: #66849b;
+      --cyan: #168bc4; --cyan-dark: #d9f0fc; --purple: #6573cb;
+      --yellow: #a66b16; --red: #ce5265; --green: #23865d;
+      --palette-accent: #168bc4; --palette-accent-2: #6573cb;
+      --palette-soft: rgba(22,139,196,.12);
+    }
+    [data-theme="forest"] {
+      --bg: #f0f8f0; --panel: rgba(255,255,255,.84); --panel-2: rgba(226,241,226,.9);
+      --line: rgba(91,151,104,.32); --text: #23442d; --muted: #718b75;
+      --cyan: #398b52; --cyan-dark: #dcefe0; --purple: #718b46;
+      --yellow: #a87522; --red: #c94e54; --green: #26804b;
+      --palette-accent: #398b52; --palette-accent-2: #718b46;
+      --palette-soft: rgba(57,139,82,.12);
+    }
+    [data-theme="sunset"] {
+      --bg: #fff5ed; --panel: rgba(255,255,255,.85); --panel-2: rgba(255,231,211,.88);
+      --line: rgba(220,135,83,.32); --text: #60351f; --muted: #9a725b;
+      --cyan: #df7439; --cyan-dark: #ffeadc; --purple: #bb5d68;
+      --yellow: #a66b16; --red: #ca4c50; --green: #36845b;
+      --palette-accent: #df7439; --palette-accent-2: #bb5d68;
+      --palette-soft: rgba(223,116,57,.12);
+    }
+    [data-theme="ocean"] body {
+      background: radial-gradient(ellipse at 15% 5%, rgba(75,180,226,.24), transparent 30rem),
+        radial-gradient(ellipse at 88% 20%, rgba(105,121,210,.17), transparent 32rem), var(--bg);
+    }
+    [data-theme="forest"] body {
+      background: radial-gradient(ellipse at 15% 5%, rgba(91,171,105,.22), transparent 30rem),
+        radial-gradient(ellipse at 88% 20%, rgba(158,177,92,.16), transparent 32rem), var(--bg);
+    }
+    [data-theme="sunset"] body {
+      background: radial-gradient(ellipse at 15% 5%, rgba(255,165,105,.24), transparent 30rem),
+        radial-gradient(ellipse at 88% 20%, rgba(225,112,126,.16), transparent 32rem), var(--bg);
+    }
+    [data-theme="ocean"] .brand-mark,
+    [data-theme="forest"] .brand-mark,
+    [data-theme="sunset"] .brand-mark {
+      background: linear-gradient(145deg, var(--palette-accent), var(--palette-accent-2));
+      box-shadow: 0 9px 26px var(--palette-soft), inset 0 1px 0 rgba(255,255,255,.55);
+    }
+    [data-theme="ocean"] .header-pill, [data-theme="ocean"] .eyebrow,
+    [data-theme="forest"] .header-pill, [data-theme="forest"] .eyebrow,
+    [data-theme="sunset"] .header-pill, [data-theme="sunset"] .eyebrow {
+      color: var(--palette-accent); border-color: var(--line); background: var(--panel);
+    }
+    [data-theme="ocean"] .hero h1 span,
+    [data-theme="forest"] .hero h1 span,
+    [data-theme="sunset"] .hero h1 span {
+      background-image: linear-gradient(90deg, var(--palette-accent), var(--palette-accent-2));
+    }
+    [data-theme="ocean"] .section-kicker, [data-theme="forest"] .section-kicker,
+    [data-theme="sunset"] .section-kicker,
+    [data-theme="ocean"] .operation-symbol, [data-theme="forest"] .operation-symbol,
+    [data-theme="sunset"] .operation-symbol { color: var(--palette-accent); }
+    [data-theme="ocean"] .stat, [data-theme="ocean"] .panel,
+    [data-theme="forest"] .stat, [data-theme="forest"] .panel,
+    [data-theme="sunset"] .stat, [data-theme="sunset"] .panel {
+      background: var(--panel); border-color: var(--line); box-shadow: 0 18px 52px var(--palette-soft), inset 0 1px 0 rgba(255,255,255,.75);
+    }
+    [data-theme="ocean"] .operation, [data-theme="forest"] .operation, [data-theme="sunset"] .operation {
+      background: linear-gradient(145deg, var(--panel), var(--panel-2)); border-color: var(--line);
+    }
+    [data-theme="ocean"] .operation.selected, [data-theme="forest"] .operation.selected,
+    [data-theme="sunset"] .operation.selected {
+      background: var(--palette-soft); border-color: var(--palette-accent);
+      box-shadow: 0 10px 28px var(--palette-soft), inset 0 0 0 1px rgba(255,255,255,.7);
+    }
+    [data-theme="ocean"] .mode, [data-theme="forest"] .mode, [data-theme="sunset"] .mode {
+      background: var(--panel); border-color: var(--line);
+    }
+    [data-theme="ocean"] .mode.selected, [data-theme="forest"] .mode.selected,
+    [data-theme="sunset"] .mode.selected {
+      background: var(--palette-soft); border-color: var(--palette-accent); color: var(--palette-accent);
+    }
+    [data-theme="ocean"] .mode.selected strong, [data-theme="forest"] .mode.selected strong,
+    [data-theme="sunset"] .mode.selected strong { color: inherit; }
+    [data-theme="ocean"] .level-box, [data-theme="forest"] .level-box, [data-theme="sunset"] .level-box,
+    [data-theme="ocean"] .metric-chip, [data-theme="forest"] .metric-chip, [data-theme="sunset"] .metric-chip,
+    [data-theme="ocean"] .rules, [data-theme="forest"] .rules, [data-theme="sunset"] .rules {
+      background: var(--panel-2); border-color: var(--line);
+    }
+    [data-theme="ocean"] .primary, [data-theme="ocean"] .answer-submit,
+    [data-theme="forest"] .primary, [data-theme="forest"] .answer-submit,
+    [data-theme="sunset"] .primary, [data-theme="sunset"] .answer-submit {
+      color: #fff; background: linear-gradient(105deg, var(--palette-accent), var(--palette-accent-2));
+      box-shadow: 0 12px 28px var(--palette-soft);
+    }
+    [data-theme="ocean"] .timer-fill, [data-theme="forest"] .timer-fill, [data-theme="sunset"] .timer-fill {
+      background: linear-gradient(90deg, var(--palette-accent), var(--palette-accent-2));
+    }
+    [data-theme="ocean"] .question-card, [data-theme="forest"] .question-card,
+    [data-theme="sunset"] .question-card {
+      background: linear-gradient(145deg, var(--palette-soft), var(--panel-2)); border-color: var(--line);
+    }
+    [data-theme="ocean"] .answer-input, [data-theme="forest"] .answer-input,
+    [data-theme="sunset"] .answer-input {
+      background: var(--panel); color: var(--text); border-color: var(--line);
+    }
+    [data-theme="ocean"] .text-button, [data-theme="ocean"] .secondary,
+    [data-theme="forest"] .text-button, [data-theme="forest"] .secondary,
+    [data-theme="sunset"] .text-button, [data-theme="sunset"] .secondary {
+      background: var(--panel-2); color: var(--text); border-color: var(--line);
+    }
+    [data-theme="ocean"] .bubble, [data-theme="forest"] .bubble, [data-theme="sunset"] .bubble {
+      color: var(--palette-accent); opacity: .28;
+      background: radial-gradient(circle at 27% 22%, rgba(255,255,255,.95) 0 2%, rgba(255,255,255,.58) 7%, transparent 23%),
+        radial-gradient(circle at 70% 78%, rgba(255,255,255,.50), transparent 30%),
+        radial-gradient(circle at 48% 48%, var(--palette-soft), var(--panel-2));
+      box-shadow: inset 0 0 18px rgba(255,255,255,.62), 0 12px 32px var(--palette-soft);
+    }
+    @media (max-width: 520px) {
+      .theme-picker { padding: 6px 7px; gap: 4px; }
+      .theme-picker select { max-width: 88px; font-size: 10px; }
+    }
+
   </style>
 </head>
 <body>
@@ -624,7 +773,15 @@
         <span><span class="brand-name">MathStorm</span><span class="brand-sub">treino mental</span></span>
       </a>
       <div class="header-actions">
-        <button class="sound-toggle" type="button" id="themeToggle" aria-pressed="false" title="Alternar tema">☀ Tema claro</button>
+        <label class="theme-picker" for="themeSelect">Tema
+          <select id="themeSelect" aria-label="Escolher tema visual">
+            <option value="pink">Rosa</option>
+            <option value="ocean">Oceano</option>
+            <option value="forest">Floresta</option>
+            <option value="sunset">Pôr do sol</option>
+            <option value="dark">Noturno</option>
+          </select>
+        </label>
         <div class="volume-control">
           <label for="musicVolume">♫ Música <output id="musicVolumeValue" for="musicVolume">70%</output></label>
           <input id="musicVolume" type="range" min="0" max="100" step="1" value="70" aria-label="Volume da música">
@@ -788,23 +945,24 @@
       function loadThemeSetting() {
         try {
           const saved = localStorage.getItem("equa-theme");
-          return saved === "dark" ? "dark" : "light";
+          if (["pink", "ocean", "forest", "sunset", "dark"].includes(saved)) return saved;
+          return saved === "light" ? "pink" : "pink";
         } catch (error) {
-          return "dark";
+          return "pink";
         }
       }
 
       let currentTheme = loadThemeSetting();
 
       function applyTheme() {
-        document.documentElement.dataset.theme = currentTheme;
-        document.documentElement.style.colorScheme = currentTheme;
-        const button = $("themeToggle");
-        const isLight = currentTheme === "light";
-        button.textContent = isLight ? "☾ Tema escuro" : "☀ Tema claro";
-        button.setAttribute("aria-pressed", String(isLight));
-        button.setAttribute("aria-label", isLight ? "Ativar tema escuro" : "Ativar tema claro");
-        document.querySelector('meta[name="theme-color"]').setAttribute("content", isLight ? "#f2f5f9" : "#101521");
+        document.documentElement.dataset.theme = currentTheme === "pink" ? "light" : currentTheme;
+        document.documentElement.style.colorScheme = currentTheme === "dark" ? "dark" : "light";
+        $("themeSelect").value = currentTheme;
+        const themeColors = {
+          pink: "#fff5fb", ocean: "#eff8ff", forest: "#f0f8f0",
+          sunset: "#fff5ed", dark: "#1b1020"
+        };
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", themeColors[currentTheme]);
       }
 
       function loadVolumeSetting(key, legacyKey, fallback) {
@@ -1198,8 +1356,8 @@
         }, 450);
       }
 
-      $("themeToggle").addEventListener("click", () => {
-        currentTheme = currentTheme === "dark" ? "light" : "dark";
+      $("themeSelect").addEventListener("change", (event) => {
+        currentTheme = event.target.value;
         try { localStorage.setItem("equa-theme", currentTheme); } catch (error) { /* Preferência apenas local. */ }
         applyTheme();
       });
