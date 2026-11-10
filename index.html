@@ -789,27 +789,77 @@
       .number-pad button { min-height: 52px; font-size: 20px; }
     }
 
+  
+/* Western cinematic / golden ratio visual identity */
+:root,[data-theme] {
+ color-scheme:dark;--bg:#17130f;--panel:rgba(37,30,22,.93);--panel-2:rgba(54,43,30,.94);
+ --line:rgba(211,170,99,.3);--text:#f5e8cc;--muted:#b8a486;--cyan:#e2b65f;
+ --cyan-dark:#49351b;--purple:#c98a58;--yellow:#f4cf78;--red:#d46c4d;--green:#9eb17a;--radius:8px;
+}
+html,body{min-height:100%}
+body{background:linear-gradient(115deg,rgba(22,16,11,.96),rgba(37,27,17,.86) 48%,rgba(18,16,13,.97));font-family:Georgia,"Times New Roman",serif;letter-spacing:.01em}
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.13;mix-blend-mode:screen;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.2'/%3E%3C/svg%3E")}
+.western-scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.sun-disc{position:absolute;width:min(64vw,720px);aspect-ratio:1;border-radius:50%;right:-12%;top:-35%;background:radial-gradient(circle,rgba(244,205,126,.28),rgba(191,119,59,.13) 48%,transparent 70%)}
+.distant-ridge{position:absolute;inset:auto -8% 0;height:44%;background:linear-gradient(180deg,rgba(119,79,43,.22),rgba(29,24,18,.12));clip-path:polygon(0 70%,12% 48%,22% 62%,34% 31%,46% 59%,58% 35%,70% 61%,82% 39%,100% 66%,100% 100%,0 100%)}
+.foreground-ridge{position:absolute;inset:auto -8% -1px;height:23%;background:linear-gradient(180deg,rgba(99,65,35,.18),rgba(12,11,9,.72));clip-path:polygon(0 55%,15% 38%,27% 58%,40% 31%,54% 57%,68% 35%,82% 60%,100% 33%,100% 100%,0 100%)}
+.scene-coordinate{position:absolute;right:25px;bottom:22px;color:rgba(228,190,122,.45);font:700 8px ui-monospace,monospace;letter-spacing:.2em;transform:rotate(-90deg);transform-origin:right bottom}
+.scene-star{position:absolute;left:5%;top:18%;color:rgba(238,202,139,.14);font-size:clamp(70px,12vw,160px)}
+.shell{position:relative;z-index:1}
+header{padding-bottom:18px;border-bottom:1px solid rgba(215,174,106,.22)}
+.brand-mark{width:52px;height:52px;padding:3px;border-radius:50%;background:linear-gradient(145deg,#f4d98e,#76502b 62%,#241d15);box-shadow:0 0 0 1px rgba(255,224,157,.38),0 8px 26px #0007}
+.brand-mark svg{width:100%;height:100%;display:block}
+.brand-name{font:700 21px Georgia,serif;letter-spacing:.06em;text-transform:uppercase}
+.brand-sub{color:#d0b47f;letter-spacing:.23em}
+.header-pill,.eyebrow{color:#e7c477;border-color:rgba(224,184,108,.38);background:rgba(119,78,35,.2);border-radius:2px;font-family:ui-monospace,monospace;letter-spacing:.13em}
+.theme-picker,.volume-control{background:rgba(42,32,22,.9);border:1px solid var(--line);border-radius:4px;color:var(--text)}
+.theme-picker select{color:var(--text);background:#2b2117;border:1px solid #70532e}
+.hero{max-width:800px;position:relative;padding:22px 0 26px}
+.hero::after{content:"";position:absolute;right:2%;top:4%;width:min(34vw,270px);aspect-ratio:1;border:1px solid rgba(224,184,108,.2);border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(224,184,108,.09) 0deg 1deg,transparent 1deg 12deg);mask-image:radial-gradient(circle,transparent 0 34%,#000 35% 36%,transparent 37% 47%,#000 48% 49%,transparent 50%);pointer-events:none}
+.hero h1{font-family:Georgia,serif;font-weight:700;text-transform:uppercase;letter-spacing:-.045em;text-shadow:0 5px 24px #0007}
+.hero h1 span{color:#e7bd69}.hero p{color:#c6b28f;max-width:580px}
+.stat,.panel{background:linear-gradient(145deg,rgba(48,38,27,.96),rgba(27,23,18,.96));border:1px solid rgba(204,159,88,.3);border-radius:7px;box-shadow:0 18px 50px #0004,inset 0 1px #ffebbe0a}
+.stat{border-top:2px solid rgba(219,178,103,.6)}
+.stat-label,.section-kicker,.question-label,.metric-chip small{color:#c4a875;font-family:ui-monospace,monospace;letter-spacing:.14em}
+.stat strong,.panel h2,.result-panel h2{font-family:Georgia,serif}
+.operation,.mode,.level-box,.metric-chip,.secondary{background:rgba(72,55,35,.62);border-color:rgba(211,170,99,.2);color:var(--text);border-radius:5px}
+.operation.selected,.mode.selected{background:rgba(194,143,65,.18);border-color:#e3b960}
+.operation-symbol{color:#e4bb6b}
+.primary,.answer-submit,.number-pad .pad-enter{background:linear-gradient(135deg,#f1d18a,#bd873c);color:#24180c;border:1px solid #f7dda2;border-radius:4px;text-transform:uppercase;letter-spacing:.08em;box-shadow:0 7px 24px rgba(178,122,48,.2)}
+.text-button{border-radius:4px;color:#e2c58d}
+.question-card{background:linear-gradient(135deg,rgba(80,57,31,.5),rgba(31,26,20,.88));border:1px solid rgba(221,179,105,.38);border-radius:6px;box-shadow:inset 0 0 45px rgba(218,168,87,.04)}
+.question{font-family:Georgia,serif;color:#fff0d2;text-shadow:0 4px 22px #0008}
+.answer-input{background:#211a13;border-color:#8b693b;color:#fff0d2;border-radius:4px}
+.number-pad button{background:rgba(75,57,36,.96);border:1px solid rgba(223,184,111,.32);color:#f5e8cc;border-radius:4px}
+.number-pad button:active{background:#9a6d34;transform:scale(.97)}
+.timer-track{background:#493a29}.timer-fill{background:linear-gradient(90deg,#b78a4a,#f0d18b)}.timer-fill.urgent{background:#d46c4d}
+footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,monospace}
+@media(max-width:800px){header{align-items:flex-start;flex-direction:column}.header-actions{width:100%;flex-wrap:wrap}.hero::after{opacity:.4;right:-4%}}
+@media(max-width:520px){.shell{width:calc(100% - 24px);padding-top:16px}.header-actions{display:grid;grid-template-columns:1fr 1fr}.header-pill{grid-column:1/-1;text-align:center}.theme-picker{grid-column:1/-1}.volume-control{min-width:0}.hero{padding-top:10px}.hero h1{font-size:clamp(31px,10vw,48px)}.scene-coordinate{right:12px;font-size:7px}}
+
   </style>
 </head>
 <body>
-  <div class="bubble-scene" aria-hidden="true">
-    <span class="bubble bubble-a">★</span>
-    <span class="bubble bubble-b">★</span>
-    <span class="bubble bubble-c">★</span>
-    <span class="bubble bubble-d">★</span>
-    <span class="bubble bubble-e">★</span>
-    <span class="bubble bubble-f">★</span>
-    <span class="bubble bubble-g">★</span>
-    <span class="bubble bubble-h">★</span>
-    <span class="bubble bubble-i">★</span>
-    <span class="bubble bubble-j">★</span>
-    <span class="bubble bubble-k">★</span>
-    <span class="bubble bubble-l">★</span>
+  <div class="western-scene" aria-hidden="true">
+    <div class="sun-disc"></div><div class="distant-ridge"></div><div class="foreground-ridge"></div>
+    <div class="scene-coordinate">GOLDEN SPIRAL ROUTE · 39° 48' 12&quot; N</div><div class="scene-star">✳</div>
   </div>
   <div class="shell">
     <header>
       <a class="brand" href="#" aria-label="MathStorm início">
-        <span class="brand-mark">M.</span>
+        <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64">
+          <defs>
+            <radialGradient id="steel" cx="32%" cy="25%" r="75%"><stop stop-color="#fff8df"/><stop offset=".24" stop-color="#d7d0b9"/><stop offset=".58" stop-color="#85877f"/><stop offset=".82" stop-color="#3d4545"/><stop offset="1" stop-color="#171f20"/></radialGradient>
+            <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a8"/><stop offset=".5" stop-color="#d9a83e"/><stop offset="1" stop-color="#8b5c1d"/></linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="27" fill="url(#steel)" stroke="#f4d98b" stroke-width="1.5"/>
+          <path d="M11 25Q30 6 52 24M9 37Q31 57 55 36" fill="none" stroke="#242c2b" stroke-width="2.2"/>
+          <path d="M17 13Q29 27 47 49M47 13Q34 29 17 51" fill="none" stroke="#d9d4c2" opacity=".5"/>
+          <path d="M8 8H34V20H22V31H14V42H8M8 8H34V34H21V47H8" fill="none" stroke="url(#gold)" stroke-width="2.5" stroke-linejoin="round"/>
+          <circle cx="32" cy="32" r="2.2" fill="#ffe9a0"/>
+        </svg>
+      </span>
         <span><span class="brand-name">MathStorm</span><span class="brand-sub">treino mental</span></span>
       </a>
       <div class="header-actions">
