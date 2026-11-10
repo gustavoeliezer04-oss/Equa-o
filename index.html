@@ -1287,17 +1287,39 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
         if (musicVolume <= 0 || !audioContext || !musicGain) return;
         const step = musicStep % 16;
         const start = musicNextStepTime;
-        const bassPattern = [55, 0, 73.42, 0, 82.41, 0, 73.42, 0, 65.41, 0, 73.42, 0, 49, 0, 65.41, 0];
-        if (bassPattern[step]) {
-          scheduleMusicTone(bassPattern[step], start, 0.19, "triangle", 0.085, 520);
+
+        if (selectedMode === "requiem") {
+          // Réquiem: ostinato grave, notas menores/dissonantes e pulsos metálicos.
+          // A trilha suave original permanece intacta nos outros modos.
+          const requiemBass = [55, 0, 55, 0, 65.41, 0, 58.27, 0, 49, 0, 58.27, 0, 55, 0, 77.78, 0];
+          const tensionNotes = [110, 0, 116.54, 0, 130.81, 0, 116.54, 0, 98, 0, 116.54, 0, 103.83, 0, 155.56, 0];
+          if (requiemBass[step]) {
+            scheduleMusicTone(requiemBass[step], start, 0.27, "sawtooth", 0.105, 260);
+          }
+          if (tensionNotes[step]) {
+            scheduleMusicTone(tensionNotes[step], start, 0.16, "triangle", 0.035, 900);
+          }
+          if (step % 4 === 0) scheduleMusicKick(start);
+          if (step === 3 || step === 7 || step === 11 || step === 15) {
+            scheduleMusicNoise(start, 0.085, 0.026, 2200);
+          }
+          if (step === 6 || step === 14) {
+            scheduleMusicTone(466.16, start, 0.11, "square", 0.018, 1800);
+          }
+        } else {
+          const bassPattern = [55, 0, 73.42, 0, 82.41, 0, 73.42, 0, 65.41, 0, 73.42, 0, 49, 0, 65.41, 0];
+          if (bassPattern[step]) {
+            scheduleMusicTone(bassPattern[step], start, 0.19, "triangle", 0.085, 520);
+          }
+          if (step === 0 || step === 8) scheduleMusicKick(start);
+          if (step === 4 || step === 12) scheduleMusicNoise(start, 0.13, 0.035, 1400);
+          if (step === 2 || step === 6 || step === 10 || step === 14) {
+            scheduleMusicNoise(start, 0.035, 0.012, 6500);
+          }
+          if (step === 0) scheduleMusicChord(start, [220, 261.63, 329.63, 392]);
+          if (step === 8) scheduleMusicChord(start, [196, 246.94, 293.66, 349.23]);
         }
-        if (step === 0 || step === 8) scheduleMusicKick(start);
-        if (step === 4 || step === 12) scheduleMusicNoise(start, 0.13, 0.035, 1400);
-        if (step === 2 || step === 6 || step === 10 || step === 14) {
-          scheduleMusicNoise(start, 0.035, 0.012, 6500);
-        }
-        if (step === 0) scheduleMusicChord(start, [220, 261.63, 329.63, 392]);
-        if (step === 8) scheduleMusicChord(start, [196, 246.94, 293.66, 349.23]);
+
         musicNextStepTime += MUSIC_STEP;
         musicStep = (musicStep + 1) % 16;
       }
