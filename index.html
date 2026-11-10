@@ -1436,6 +1436,15 @@
 
       $("startButton").addEventListener("click", beginGame);
       const numberPad = $("numberPad");
+      const answerInput = $("answerInput");
+      // Em dispositivos com toque, impede o teclado virtual nativo.
+      // O valor continua sendo atualizado pelo teclado próprio do MathStorm.
+      const touchDevice = window.matchMedia("(pointer: coarse)").matches;
+      if (touchDevice) {
+        answerInput.readOnly = true;
+        answerInput.setAttribute("inputmode", "none");
+        answerInput.setAttribute("aria-describedby", "feedback");
+      }
       numberPad.addEventListener("click", (event) => {
         const button = event.target.closest("button");
         if (!button || locked) return;
