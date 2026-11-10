@@ -1,4 +1,4 @@
-# EQUA — Treino de cálculo mental
+# MathStorm — Treino de cálculo mental
 
 Jogo de cálculo mental com quatro operações, desafios cronometrados e progressão contínua de dificuldade. A identidade visual usa tons rosados, bolhas translúcidas e estrelas.
 
@@ -29,4 +29,4 @@ HTML, CSS e JavaScript puro. O progresso e as preferências são salvos via `loc
 
 ## Observação
 
-Projeto independente. EQUA não é afiliado à plataforma Assaad e não utiliza código ou identidade visual proprietários dela.
+Projeto independente. MathStorm não é afiliado à plataforma Assaad e não utiliza código ou identidade visual proprietários dela.
