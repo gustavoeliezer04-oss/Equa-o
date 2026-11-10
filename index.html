@@ -1658,7 +1658,8 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       }
       numberPad.addEventListener("click", (event) => {
         const button = event.target.closest("button");
-        if (!button || locked) return;
+        // O botão OK envia o formulário; não é uma tecla numérica.
+        if (!button || button.type === "submit" || locked) return;
         const input = $("answerInput");
         const action = button.dataset.action;
         if (action === "clear") {
@@ -1667,6 +1668,7 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
           input.value = input.value.slice(0, -1);
         } else {
           const key = button.dataset.key;
+          if (typeof key !== "string") return;
           if (key === "," && /[,.]/.test(input.value)) return;
           input.value += key;
         }
