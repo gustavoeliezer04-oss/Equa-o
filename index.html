@@ -749,6 +749,46 @@
       .theme-picker select { max-width: 88px; font-size: 10px; }
     }
 
+
+    .number-pad {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      width: min(100%, 440px);
+      margin: 14px auto 0;
+    }
+    .number-pad button {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      font-size: 18px;
+      font-weight: 850;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform .12s ease, filter .12s ease, background .12s ease;
+    }
+    .number-pad button:active { transform: scale(.96); filter: brightness(.96); }
+    .number-pad button:disabled { opacity: .45; cursor: not-allowed; }
+    .number-pad .pad-action { background: var(--panel-2); color: var(--muted); }
+    .number-pad .pad-zero { grid-column: span 2; }
+    .number-pad .pad-enter {
+      grid-column: span 2;
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(105deg, var(--palette-accent, #e85eaf), var(--palette-accent-2, #bd56b7));
+    }
+    [data-theme="dark"] .number-pad button { background: rgba(66,39,70,.78); border-color: rgba(255,173,220,.2); }
+    [data-theme="dark"] .number-pad .pad-action { background: rgba(91,51,87,.8); }
+    @media (max-width: 520px) {
+      .answer-form { flex-direction: row; }
+      .answer-submit { min-height: 48px; padding: 0 15px; }
+      .number-pad { gap: 7px; margin-top: 12px; }
+      .number-pad button { min-height: 52px; font-size: 20px; }
+    }
+
   </style>
 </head>
 <body>
@@ -858,9 +898,25 @@
         <div class="question-label">Resolva mentalmente</div>
         <div class="question" id="questionText">8 + 5</div>
         <form class="answer-form" id="answerForm">
-          <input class="answer-input" id="answerInput" type="text" inputmode="decimal" autocomplete="off" placeholder="Sua resposta" aria-label="Sua resposta" required>
+          <input class="answer-input" id="answerInput" type="text" inputmode="none" autocomplete="off" placeholder="Sua resposta" aria-label="Sua resposta" required>
           <button class="answer-submit" id="answerButton" type="submit">Responder</button>
         </form>
+        <div class="number-pad" id="numberPad" aria-label="Teclado numérico do MathStorm">
+          <button type="button" data-key="7">7</button>
+          <button type="button" data-key="8">8</button>
+          <button type="button" data-key="9">9</button>
+          <button type="button" data-action="backspace" class="pad-action" aria-label="Apagar último dígito">⌫</button>
+          <button type="button" data-key="4">4</button>
+          <button type="button" data-key="5">5</button>
+          <button type="button" data-key="6">6</button>
+          <button type="button" data-action="clear" class="pad-action">C</button>
+          <button type="button" data-key="1">1</button>
+          <button type="button" data-key="2">2</button>
+          <button type="button" data-key="3">3</button>
+          <button type="button" data-key=",">,</button>
+          <button type="button" data-key="0" class="pad-zero">0</button>
+          <button type="submit" form="answerForm" class="pad-enter">OK ↵</button>
+        </div>
         <p class="feedback" id="feedback" role="status">Digite o resultado e pressione Enter.</p>
       </div>
       <p class="game-note">Use vírgula ou ponto para responder contas com decimais.</p>
@@ -1288,7 +1344,8 @@
         $("timerFill").style.width = "100%";
         $("timerFill").classList.remove("urgent");
         renderTimer();
-        $("answerInput").focus();
+        numberPad.querySelectorAll("button").forEach((button) => { button.disabled = false; });
+        $("answerButton").disabled = false;
         let lastTick = Date.now();
         timerInterval = setInterval(() => {
           if (locked) return;
@@ -1350,6 +1407,7 @@
         $("roundPoints").textContent = roundPoints;
         $("answerInput").disabled = true;
         $("answerButton").disabled = true;
+        numberPad.querySelectorAll("button").forEach((button) => { button.disabled = true; });
 
         transitionTimeout = setTimeout(() => {
           showQuestion();
@@ -1377,6 +1435,24 @@
       });
 
       $("startButton").addEventListener("click", beginGame);
+      const numberPad = $("numberPad");
+      numberPad.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button || locked) return;
+        const input = $("answerInput");
+        const action = button.dataset.action;
+        if (action === "clear") {
+          input.value = "";
+        } else if (action === "backspace") {
+          input.value = input.value.slice(0, -1);
+        } else {
+          const key = button.dataset.key;
+          if (key === "," && /[,.]/.test(input.value)) return;
+          input.value += key;
+        }
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+
       $("answerForm").addEventListener("submit", (event) => {
         event.preventDefault();
         if (locked) return;
