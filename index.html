@@ -910,7 +910,7 @@
       }
 
       function scheduleMusicStep() {
-        if (!musicEnabled || !audioContext || !musicGain) return;
+        if (musicVolume <= 0 || !audioContext || !musicGain) return;
         const step = musicStep % 16;
         const start = musicNextStepTime;
         const bassPattern = [55, 0, 73.42, 0, 82.41, 0, 73.42, 0, 65.41, 0, 73.42, 0, 49, 0, 65.41, 0];
@@ -1004,7 +1004,6 @@
         $("statStreak").textContent = progress.bestStreak.toLocaleString("pt-BR");
         $("statDifficulty").textContent = getDifficulty().toFixed(1).replace(".", ",") + "×";
         $("levelHint").textContent = "Dificuldade atual: " + getDifficulty().toFixed(1).replace(".", ",") + "×. Cada resposta correta aumenta continuamente o desafio.";
-        updateSoundButton();
       }
 
       function showView(view) {
