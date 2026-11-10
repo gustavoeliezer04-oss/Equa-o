@@ -91,6 +91,28 @@
     .header-actions { display: flex; align-items: center; gap: 10px; }
     .sound-toggle { border: 1px solid var(--line); border-radius: 99px; background: var(--panel); color: var(--text); padding: 7px 11px; font-size: 11px; font-weight: 800; white-space: nowrap; }
     .sound-toggle[aria-pressed="false"] { color: var(--muted); }
+    .volume-control {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 116px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .volume-control label { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; }
+    .volume-control output { color: var(--cyan-dark); font-variant-numeric: tabular-nums; }
+    .volume-control input[type="range"] {
+      width: 100%;
+      height: 5px;
+      margin: 2px 0;
+      accent-color: var(--cyan);
+      cursor: pointer;
+    }
     .header-pill, .eyebrow {
       color: var(--cyan); border: 1px solid rgba(99, 227, 210, .24); background: rgba(99, 227, 210, .07);
       border-radius: 99px; padding: 7px 12px; font-size: 11px; letter-spacing: .12em; font-weight: 800; text-transform: uppercase;
@@ -202,6 +224,7 @@
       .shell { width: min(100% - 24px, 560px); padding-top: 18px; }
       header { margin-bottom: 28px; }
       .header-pill { font-size: 9px; padding: 6px 8px; }\n      .header-actions { gap: 6px; }\n      .sound-toggle { font-size: 10px; padding: 6px 8px; }
+      .volume-control { min-width: 105px; flex: 1 1 105px; padding: 6px 8px; }
       .brand-mark { width: 37px; height: 37px; }
       .hero p { font-size: 14px; }
       .stats { gap: 7px; margin: 22px 0; }
@@ -602,8 +625,14 @@
       </a>
       <div class="header-actions">
         <button class="sound-toggle" type="button" id="themeToggle" aria-pressed="false" title="Alternar tema">☀ Tema claro</button>
-        <button class="sound-toggle" type="button" id="soundToggle" aria-pressed="true">♪ Sons ligados</button>
-        <button class="sound-toggle" type="button" id="musicToggle" aria-pressed="true">♫ Música ligada</button>
+        <div class="volume-control">
+          <label for="musicVolume">♫ Música <output id="musicVolumeValue" for="musicVolume">70%</output></label>
+          <input id="musicVolume" type="range" min="0" max="100" step="1" value="70" aria-label="Volume da música">
+        </div>
+        <div class="volume-control">
+          <label for="effectsVolume">♪ Efeitos <output id="effectsVolumeValue" for="effectsVolume">75%</output></label>
+          <input id="effectsVolume" type="range" min="0" max="100" step="1" value="75" aria-label="Volume dos efeitos sonoros">
+        </div>
         <span class="header-pill">4 operações · sem fim</span>
       </div>
     </header>
@@ -738,8 +767,8 @@
       let timerInterval = null;
       let transitionTimeout = null;
       let locked = false;
-      let soundEnabled = loadSoundSetting();
-      let musicEnabled = loadMusicSetting();
+      let effectsVolume = loadVolumeSetting("equa-effects-volume", "equa-sound-enabled", 75);
+      let musicVolume = loadVolumeSetting("equa-music-volume", "equa-music-enabled", 70);
       let audioContext = null;
       let musicGain = null;
       let musicScheduler = null;
@@ -778,34 +807,24 @@
         document.querySelector('meta[name="theme-color"]').setAttribute("content", isLight ? "#f2f5f9" : "#101521");
       }
 
-      function loadSoundSetting() {
+      function loadVolumeSetting(key, legacyKey, fallback) {
         try {
-          const saved = localStorage.getItem("equa-sound-enabled");
-          return saved === null ? true : saved === "true";
+          const saved = localStorage.getItem(key);
+          if (saved !== null) return Math.max(0, Math.min(100, Number(saved) || 0));
+          const legacy = localStorage.getItem(legacyKey);
+          return legacy === "false" ? 0 : fallback;
         } catch (error) {
-          return true;
+          return fallback;
         }
       }
 
-      function updateSoundButton() {
-        const button = $("soundToggle");
-        button.textContent = soundEnabled ? "♪ Sons ligados" : "♪ Sons desligados";
-        button.setAttribute("aria-pressed", String(soundEnabled));
-      }
-
-      function loadMusicSetting() {
-        try {
-          const saved = localStorage.getItem("equa-music-enabled");
-          return saved === null ? true : saved === "true";
-        } catch (error) {
-          return true;
-        }
-      }
-
-      function updateMusicButton() {
-        const button = $("musicToggle");
-        button.textContent = musicEnabled ? "♫ Música ligada" : "♫ Música desligada";
-        button.setAttribute("aria-pressed", String(musicEnabled));
+      function updateVolumeControls() {
+        $("musicVolume").value = musicVolume;
+        $("effectsVolume").value = effectsVolume;
+        $("musicVolumeValue").textContent = musicVolume + "%";
+        $("effectsVolumeValue").textContent = effectsVolume + "%";
+        $("musicVolume").setAttribute("aria-valuetext", musicVolume + " por cento");
+        $("effectsVolume").setAttribute("aria-valuetext", effectsVolume + " por cento");
       }
 
       function ensureAudioContext() {
@@ -910,7 +929,7 @@
       }
 
       function startAmbientMusic() {
-        if (!musicEnabled) return;
+        if (musicVolume <= 0) return;
         const context = musicOutput();
         if (!context) return;
         if (context.state === "suspended") context.resume().catch(() => {});
@@ -918,13 +937,25 @@
         const now = context.currentTime;
         musicNextStepTime = now + 0.06;
         musicGain.gain.cancelScheduledValues(now);
-        musicGain.gain.setTargetAtTime(0.62, now, 0.22);
+        musicGain.gain.setTargetAtTime(0.62 * musicVolume / 100, now, 0.22);
         musicStep = 0;
         musicScheduler = setInterval(() => {
-          if (!musicEnabled || !musicGain || !audioContext) return;
+          if (musicVolume <= 0 || !musicGain || !audioContext) return;
           const currentTime = audioContext.currentTime;
           while (musicNextStepTime < currentTime + 0.12) scheduleMusicStep();
         }, 25);
+      }
+
+      function updateMusicGain() {
+        if (!musicGain || !audioContext) return;
+        const now = audioContext.currentTime;
+        musicGain.gain.cancelScheduledValues(now);
+        musicGain.gain.setTargetAtTime(musicVolume > 0 ? 0.62 * musicVolume / 100 : 0.0001, now, 0.08);
+        if (musicVolume > 0 && musicScheduler) {
+          // Mantém a reprodução e aplica a nova intensidade imediatamente.
+        } else if (musicVolume <= 0) {
+          stopAmbientMusic();
+        }
       }
 
       function stopAmbientMusic() {
@@ -938,7 +969,7 @@
       }
 
       function playFeedbackSound(correct) {
-        if (!soundEnabled) return;
+        if (effectsVolume <= 0) return;
         try {
           const context = ensureAudioContext();
           if (!context) return;
@@ -954,7 +985,7 @@
             oscillator.type = correct ? "sine" : "triangle";
             oscillator.frequency.setValueAtTime(note.frequency, start);
             gain.gain.setValueAtTime(0.0001, start);
-            gain.gain.exponentialRampToValueAtTime(correct ? 0.24 : 0.21, start + 0.015);
+            gain.gain.exponentialRampToValueAtTime((correct ? 0.24 : 0.21) * effectsVolume / 100, start + 0.015);
             gain.gain.exponentialRampToValueAtTime(0.0001, end);
             oscillator.connect(gain);
             gain.connect(context.destination);
@@ -1174,22 +1205,18 @@
         applyTheme();
       });
 
-      $("soundToggle").addEventListener("click", () => {
-        soundEnabled = !soundEnabled;
-        try { localStorage.setItem("equa-sound-enabled", String(soundEnabled)); } catch (error) { /* Preferência apenas local. */ }
-        updateSoundButton();
-        if (soundEnabled) {
-          ensureAudioContext();
-          playFeedbackSound(true);
-        }
+      $("musicVolume").addEventListener("input", (event) => {
+        musicVolume = Number(event.target.value);
+        try { localStorage.setItem("equa-music-volume", String(musicVolume)); } catch (error) { /* Preferência apenas local. */ }
+        updateVolumeControls();
+        if (musicVolume > 0 && !locked && gameView && !gameView.classList.contains("hidden")) startAmbientMusic();
+        else updateMusicGain();
       });
 
-      $("musicToggle").addEventListener("click", () => {
-        musicEnabled = !musicEnabled;
-        try { localStorage.setItem("equa-music-enabled", String(musicEnabled)); } catch (error) { /* Preferência apenas local. */ }
-        updateMusicButton();
-        if (musicEnabled && !locked && gameView && !gameView.classList.contains("hidden")) startAmbientMusic();
-        else stopAmbientMusic();
+      $("effectsVolume").addEventListener("input", (event) => {
+        effectsVolume = Number(event.target.value);
+        try { localStorage.setItem("equa-effects-volume", String(effectsVolume)); } catch (error) { /* Preferência apenas local. */ }
+        updateVolumeControls();
       });
 
       $("startButton").addEventListener("click", beginGame);
@@ -1213,7 +1240,7 @@
 
       applyTheme();
       updateDashboard();
-      updateMusicButton();
+      updateVolumeControls();
     })();
   </script>
 </body>
