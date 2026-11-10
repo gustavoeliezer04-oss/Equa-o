@@ -158,6 +158,13 @@
     .mode small { display: block; margin-top: 3px; font-size: 11px; }
     .mode.selected { border-color: var(--purple); background: rgba(169, 154, 255, .11); color: var(--purple); }
     .mode.selected strong { color: var(--purple); }
+    .requiem-mode { grid-column: 1 / -1; border-color: rgba(211, 79, 126, .45); }
+    .requiem-mode strong { color: var(--red); }
+    .mode.requiem-mode.selected { border-color: var(--red); background: rgba(211, 79, 126, .12); }
+    .mode.requiem-mode.selected strong { color: var(--red); }
+    #resultView { max-width: 650px; margin: 0 auto; text-align: center; }
+    #resultView h2 { margin: 8px 0; font-size: 32px; }
+    #resultView p { color: var(--muted); }
     .level-box { margin-top: 24px; padding: 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 15px; }
     .level-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
     .level-top span:first-child { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
@@ -999,6 +1006,7 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
             <button class="mode" type="button" data-mode="calm" aria-pressed="false"><strong>Tranquilo</strong><small>20 s por conta</small></button>
             <button class="mode selected" type="button" data-mode="fast" aria-pressed="true"><strong>Velocidade</strong><small>12 s por conta</small></button>
             <button class="mode" type="button" data-mode="intense" aria-pressed="false"><strong>Intenso</strong><small>7 s por conta</small></button>
+            <button class="mode requiem-mode" type="button" data-mode="requiem" aria-pressed="false"><strong>Réquiem</strong><small>1 erro = fim · dificuldade acelerada</small></button>
           </div>
           <div class="level-box">
             <div class="level-top"><span>Progressão contínua</span><span id="unlockedLabel">Sem níveis ou etapas</span></div>
@@ -1011,6 +1019,17 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       <div class="rules"><span aria-hidden="true">ⓘ</span><span>Seu progresso fica salvo neste navegador. O jogo não exige cadastro e não envia seus resultados para um servidor.</span></div>
     </section>
 
+    <section id="resultView" class="panel hidden" aria-live="assertive">
+      <span class="eyebrow">MODO RÉQUIEM</span>
+      <h2>Seu réquiem chegou ao fim.</h2>
+      <p id="requiemResultText">Um erro encerra a tentativa. A próxima pode ir mais longe.</p>
+      <div class="result-score">
+        <div><strong id="requiemScore">0</strong><small>Acertos</small></div>
+        <div><strong id="requiemPoints">0</strong><small>Pontos</small></div>
+      </div>
+      <button class="primary" type="button" id="retryRequiem">Tentar novamente</button>
+      <button class="secondary" type="button" id="backToSetup">Voltar à seleção</button>
+    </section>
     <section id="gameView" class="panel game-panel hidden" aria-live="polite">
       <div class="game-head">
         <button class="text-button" type="button" id="exitButton">← Sair</button>
@@ -1074,7 +1093,8 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       const MODES = {
         calm: { name: "Tranquilo", seconds: 20 },
         fast: { name: "Velocidade", seconds: 12 },
-        intense: { name: "Intenso", seconds: 7 }
+        intense: { name: "Intenso", seconds: 7 },
+        requiem: { name: "Réquiem", seconds: 9 }
       };
       const DIFFICULTY_HINTS = [
         { max: 10, text: "Contas simples para aquecer." },
@@ -1125,6 +1145,7 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       const $ = (id) => document.getElementById(id);
       const setupView = $("setupView");
       const gameView = $("gameView");
+      const resultView = $("resultView");
 
       function saveProgress() {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (error) { /* O jogo continua mesmo sem armazenamento. */ }
@@ -1349,7 +1370,9 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       }
 
       function getDifficulty() {
-        return 1 + Math.sqrt(progress.totalCorrect / 5);
+        // Réquiem acelera a curva de dificuldade sem alterar os outros modos.
+        const divisor = selectedMode === "requiem" ? 1.5 : 5;
+        return 1 + Math.sqrt(progress.totalCorrect / divisor);
       }
 
       function updateDashboard() {
@@ -1362,6 +1385,18 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       function showView(view) {
         setupView.classList.toggle("hidden", view !== "setup");
         gameView.classList.toggle("hidden", view !== "game");
+        resultView.classList.toggle("hidden", view !== "result");
+      }
+
+      function finishRequiem(timedOut, expected) {
+        stopTimers();
+        stopAmbientMusic();
+        $("requiemResultText").textContent = timedOut
+          ? "O tempo acabou. No Réquiem, isso também conta como erro. Resposta correta: " + formatNumber(expected) + "."
+          : "Resposta incorreta. No Réquiem, não existe segunda chance. Resposta correta: " + formatNumber(expected) + ".";
+        $("requiemScore").textContent = roundCorrect.toLocaleString("pt-BR");
+        $("requiemPoints").textContent = roundPoints.toLocaleString("pt-BR");
+        showView("result");
       }
 
       document.querySelectorAll("[data-operation]").forEach((button) => {
@@ -1548,6 +1583,11 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
         $("answerButton").disabled = true;
         numberPad.querySelectorAll("button").forEach((button) => { button.disabled = true; });
 
+        if (!isCorrect && selectedMode === "requiem") {
+          transitionTimeout = setTimeout(() => finishRequiem(timedOut, expected), 650);
+          return;
+        }
+
         transitionTimeout = setTimeout(() => {
           showQuestion();
         }, 450);
@@ -1574,6 +1614,13 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       });
 
       $("startButton").addEventListener("click", beginGame);
+      $("retryRequiem").addEventListener("click", beginGame);
+      $("backToSetup").addEventListener("click", () => {
+        stopTimers();
+        stopAmbientMusic();
+        showView("setup");
+        updateDashboard();
+      });
       const numberPad = $("numberPad");
       const answerInput = $("answerInput");
       // Em dispositivos com toque, impede o teclado virtual nativo.
