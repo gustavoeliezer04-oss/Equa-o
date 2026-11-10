@@ -1094,7 +1094,7 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
         calm: { name: "Tranquilo", seconds: 20 },
         fast: { name: "Velocidade", seconds: 12 },
         intense: { name: "Intenso", seconds: 7 },
-        requiem: { name: "Réquiem", seconds: 9 }
+        requiem: { name: "Réquiem ☠️", seconds: 9 }
       };
       const DIFFICULTY_HINTS = [
         { max: 10, text: "Contas simples para aquecer." },
@@ -1370,9 +1370,12 @@ footer{border-color:rgba(211,170,99,.22);color:#a9926d;font-family:ui-monospace,
       }
 
       function getDifficulty() {
-        // Réquiem acelera a curva de dificuldade sem alterar os outros modos.
-        const divisor = selectedMode === "requiem" ? 1.5 : 5;
-        return 1 + Math.sqrt(progress.totalCorrect / divisor);
+        // Réquiem começa do zero em cada tentativa e escala mais rápido.
+        // Os modos padrão mantêm a progressão acumulada do perfil.
+        if (selectedMode === "requiem") {
+          return 1 + Math.sqrt(roundCorrect / 1.5);
+        }
+        return 1 + Math.sqrt(progress.totalCorrect / 5);
       }
 
       function updateDashboard() {
